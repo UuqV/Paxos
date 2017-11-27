@@ -1,13 +1,19 @@
-import java.io.Serializable;
-
-public class EventRecord implements Serializable {
-	public enum Operation { TWEET, BLOCK, UNBLOCK };
+public class EventRecord {
+	public enum Operation { NONE, TWEET, BLOCK, UNBLOCK };
 
 	Operation operation;
 	String username; //user that does the thing
 	String content; //either: user that is blocked, or tweet text
 	Long realtime;
 	Integer id;
+
+	public EventRecord() {
+		operation = Operation.NONE;
+		username = "";
+		content = "";
+		realtime = 0L;
+		id = -1;
+	}
 
 	public String toString() {
 		String erStr = operation.name() + "`";

@@ -15,14 +15,16 @@ public class PaxosServer extends Thread {
 			_ss = new ServerSocket(_p._hosts[_p._id]._port);
 			while (true) {
 				System.out.println("Waiting to accept ...");
-				_ss.accept();
-				System.out.println("Accepted client!");
+				Socket clientSocket = _ss.accept();
+				System.out.println("Accepted client!  Spawning thread: ");
+				RecvMessages recvMessages = new RecvMessages(clientSocket, this);
+				recvMessages.start();
 			}
 
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
-		
+
 		System.out.println("Closing Server");
 	}
 }

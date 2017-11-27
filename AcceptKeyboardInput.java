@@ -5,10 +5,10 @@ import java.lang.*;
 import java.util.concurrent.*;
 
 public class AcceptKeyboardInput extends Thread {
-	Paxos _p;
+	PaxosClient _pc;
 
-	public AcceptKeyboardInput(Paxos p) {
-		_p = p; 
+	public AcceptKeyboardInput(PaxosClient pc) {
+		_pc = pc; 
 		//testIfSocketClosed(wu.hosts[1], "AcceptKeyboardInputConstructor");
 	}
 
@@ -31,23 +31,23 @@ public class AcceptKeyboardInput extends Thread {
 				continue;
 			}
 			if (inputTokens[0].equals("tweet")) {
+
+				//create a tweet event record
 				EventRecord tweet = new EventRecord();
 				tweet.realtime = System.currentTimeMillis();
-				tweet.username = _p._hosts[_p._id]._name;
+				tweet.username = _pc._p._hosts[_pc._p._id]._name;
 				tweet.content = inputTokens[1];
-				tweet.id = _p._id;
+				tweet.id = _pc._p._id;
 				tweet.operation = EventRecord.Operation.TWEET;
 
-				
-				Message m = new Message(_p._id, Message.MsgType.PREPARE, 1, tweet);
+				//add that tweet to the QUEUE
+				_pc._q.add(tweet);
 
-				System.out.println("Message m toString: " + m.toString());
-				System.out.println("Message m fromString: ");
-				Message.fromString(m.toString()).printMessage();
-				
-				_p.pc.send(m);
+				//initiate a prepare message
+				//TODO: Figure out what to use for a propNumber
+				_pc.prepare(0);
 
-				System.out.println("Sending tweet (not implemented)");
+				System.out.println("Sending prepare (not fully implemented)");
 				//wu.sendMessage(); 
 			}
 		}

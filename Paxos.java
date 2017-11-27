@@ -17,9 +17,6 @@ public class Paxos {
 
 		PaxosClient pc = new PaxosClient(this);
 		pc.start();
-
-		AcceptKeyboardInput keyboardThread = new AcceptKeyboardInput(this);
-		keyboardThread.start();
 	}
 
 	//effects: creates the hosts array

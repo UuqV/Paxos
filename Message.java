@@ -21,6 +21,13 @@ public class Message implements Serializable{
 		_propValue = propValue;
 	}
 
+	public Message(Integer id, Integer propNumber) {
+		_id = id;
+		_msgType = MsgType.PREPARE;
+		_propNumber = propNumber;
+		_propValue = new EventRecord();
+	}
+
 
 	//OLD FORMAT: ID|TSMATRIX|LOG
 	//TODO: IMPLEMENT NEW MESSAGING FORMAT
