@@ -13,16 +13,16 @@ public class PaxosServer extends Thread {
 	public void run() {
 		try {
 			_ss = new ServerSocket(_p._hosts[_p._id]._port);
-			System.out.println("Waiting to accept ...");
-			_ss.accept();
-			System.out.println("Accepted client WOW SUCCESS");
+			while (true) {
+				System.out.println("Waiting to accept ...");
+				_ss.accept();
+				System.out.println("Accepted client!");
+			}
 
-			//TODO: LOOP THIS ACCEPT PROCESS
-			System.out.println("Waiting to accept 2 ...");
-			_ss.accept();
-			System.out.println("Accepted second client!  Closing server");
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
+		
+		System.out.println("Closing Server");
 	}
 }
