@@ -31,25 +31,19 @@ public class AcceptKeyboardInput extends Thread {
 				continue;
 			}
 			if (inputTokens[0].equals("tweet")) {
-
-				Message m = Message.fromString("TODO: Change this");
-
 				EventRecord tweet = new EventRecord();
 				tweet.realtime = System.currentTimeMillis();
 				tweet.username = _p._hosts[_p._id]._name;
 				tweet.content = inputTokens[1];
 				tweet.id = _p._id;
 				tweet.operation = EventRecord.Operation.TWEET;
-				
-				//testIfSocketClosed(wu.hosts[1], "AcceptKeyboardInput");
+
 				/*
-				System.out.println("wu.id: " + wu.id);
-				synchronized(wu){
-					wu.tsMatrix.get(wu.id).set(wu.id, tsMatrix.get(wu.id).get(wu.id) + 1);
-					tweet.timestamp = wu.tsMatrix.get(wu.id).get(wu.id);
-			
-					wu.log.add(tweet);
-				}
+				Message m = new Message(_p._id, Message.MsgType.PREPARE, 1, tweet);
+
+				System.out.println("Message m toString: " + m.toString());
+				System.out.println("Message m fromString: ");
+				Message.fromString(m.toString()).printMessage();
 				*/
 
 				System.out.println("Sending tweet (not implemented)");

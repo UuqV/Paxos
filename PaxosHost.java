@@ -22,19 +22,18 @@ public class PaxosHost {
 	}
 
 	public void connectToHost() {
-		System.out.print("Called connect to\n");
-		System.out.print("\thostname: " + _address.getHostName() + 
-			"\n\tport: " + _port + "\n");
+		//System.out.print("Called connect to\n");
+		//System.out.print("\thostname: " + _address.getHostName() + 
+		//	"\n\tport: " + _port + "\n");
 
 		try {
 			_socket = new Socket(_address.getHostName(), _port);
 
-			
-			this.printPaxosHost();
-
 			_socket.connect(new InetSocketAddress(_address, _port), 1000);
-			System.out.println("Tried to connect!");
+			System.out.println("Connected to " + _address + "\n\ton port " + _port);
+		//	System.out.println("Tried to connect!");
 		} catch (Exception e) {
+			System.out.print("ERROR: ");
 			System.out.println(e.getMessage());
 		}
 	}
