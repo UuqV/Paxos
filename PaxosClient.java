@@ -28,7 +28,7 @@ public class PaxosClient extends Thread {
 	}
 	
 	//When we want to submit a tweet for consensus
-	public void send(EventRecord tweet) {
+	public void send(Message tweet) {
 		propose();
 	}
 }
