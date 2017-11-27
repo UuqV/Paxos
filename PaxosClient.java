@@ -12,4 +12,23 @@ public class PaxosClient extends Thread {
 			_p._hosts[i].connectToHost();
 		}
 	}
+	
+	//Select a proposal number and send a prepare request to majority of acceptors
+	//Wait for acceptor response with a promise not to accept any proposals numbered
+	//less than n and with the highest-number proposal it has completed
+	public void prepare() {
+		_p._hosts[i].send();
+	}
+	
+	//Upon reciept of a response for the 'prepare' message from the majority of acceptors,
+	//send an accept request to majority of acceptors for a proposal n with value v
+	public void propose() {
+		prepare();
+		
+	}
+	
+	//When we want to submit a tweet for consensus
+	public void send(EventRecord tweet) {
+		propose();
+	}
 }
