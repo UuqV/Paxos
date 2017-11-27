@@ -38,13 +38,14 @@ public class AcceptKeyboardInput extends Thread {
 				tweet.id = _p._id;
 				tweet.operation = EventRecord.Operation.TWEET;
 
-				/*
+				
 				Message m = new Message(_p._id, Message.MsgType.PREPARE, 1, tweet);
 
 				System.out.println("Message m toString: " + m.toString());
 				System.out.println("Message m fromString: ");
 				Message.fromString(m.toString()).printMessage();
-				*/
+				
+				_p.pc.send(m);
 
 				System.out.println("Sending tweet (not implemented)");
 				//wu.sendMessage(); 
