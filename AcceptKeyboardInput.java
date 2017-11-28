@@ -8,8 +8,7 @@ public class AcceptKeyboardInput extends Thread {
 	PaxosClient _pc;
 
 	public AcceptKeyboardInput(PaxosClient pc) {
-		_pc = pc; 
-		//testIfSocketClosed(wu.hosts[1], "AcceptKeyboardInputConstructor");
+		_pc = pc;
 	}
 
 	public void run() {
@@ -41,15 +40,15 @@ public class AcceptKeyboardInput extends Thread {
 				tweet.operation = EventRecord.Operation.TWEET;
 
 				//add that tweet to the QUEUE
-				_pc._q.add(tweet);
+				//TODO: SYNCHRONIZE
+				_pc._p._qMyEvents.add(tweet);
 
 				//initiate a prepare message
 				//TODO: Figure out what to use for a propNumber
 				_pc.prepare(0);
-
-				System.out.println("Sending prepare (not fully implemented)");
-				//wu.sendMessage(); 
 			}
+
+			//TODO: Add block/unblock commands
 		}
 	}
 }

@@ -17,6 +17,8 @@ public class PaxosHost {
 		_name = name;
 		_port = port;
 		_address = address;
+		_socket = null;
+		_printWriter = null;
 	}
 
 	public void printPaxosHost() {
@@ -28,35 +30,34 @@ public class PaxosHost {
 		System.out.println("\t_printwriter = " + _printWriter);
 	}
 
+	//Connect to the address stored in data.
+	//Only connects if _socket is null, to prevent exceptions
 	public void connectToHost() {
 		try {
-			_socket = new Socket(_address.getHostName(), _port);
-
-			//_socket.connect(new InetSocketAddress(_address, _port), 1000);
-
-			if (_socket != null) {
-				System.out.println("Got here 1\n");
-				_printWriter = new PrintWriter(new OutputStreamWriter(_socket.getOutputStream()));
-				System.out.println("Created PrintWriter\n");
+			//open the socket connection:
+			if (_socket == null) {
+				_socket = new Socket(_address.getHostName(), _port);
+				//if connection was successful, display results
+				if (_socket != null) {
+					System.out.println("Connected to " + _address + "\n\ton port " + _port);
+				}
 			}
 
-			System.out.println("Connected to " + _address + "\n\ton port " + _port);
-		//	System.out.println("Tried to connect!");
+			//if socket was successfully created, open a printwriter to it:
+			if (_socket != null) {
+				_printWriter = new PrintWriter(new OutputStreamWriter(_socket.getOutputStream()));
+			}
 		} catch (Exception e) {
-			System.out.print("ERROR: ");
-			System.out.println(e.getMessage());
+			System.out.println("Refused connection to " + _address + 
+				".\n\tServer hasn't started or has crashed.");
 		}
-
-		System.out.println("Finished call to ConnectToHost");
-		printPaxosHost();
 	}
 
 	public void sendToHost(Message msg) {
-		System.out.println("Called sendToHost");
 		if (_socket != null && _printWriter != null) {
 			_printWriter.print(msg.toString());
 			_printWriter.flush();
-			System.out.println("Sent msg: " + msg.toString());
+			System.out.print("Sent to " + _name + ": " + msg.toString());
 		}
 	}
 }

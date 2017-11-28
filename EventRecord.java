@@ -11,7 +11,7 @@ public class EventRecord {
 		operation = Operation.NONE;
 		username = "";
 		content = "";
-		realtime = 0L;
+		realtime = -1L;
 		id = -1;
 	}
 

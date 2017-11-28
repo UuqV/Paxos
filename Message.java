@@ -2,41 +2,35 @@ import java.io.*;
 import java.util.ArrayList;
 
 public class Message implements Serializable{
-	public enum MsgType { PREPARE, PROPOSE, PROMISE, ACCEPT };
-	/*
-	ArrayList<EventRecord> log;
-	ArrayList<ArrayList<Integer>> tsMatrix;
-	Integer id;
-	*/
+	public enum MsgType { PREPARE, PROMISE, ACCEPT };
+	
+	//Message contains two IDs: _id, the sender of the message,
+	//and _value._id, the creator of the tweet in the message
 	Integer _id;
 	MsgType _msgType;
-	Integer _propNumber;
-	EventRecord _propValue;
+	Integer _number;
+	EventRecord _value;
 
-	//does not deep copy
-	public Message(Integer id, MsgType msgType, Integer propNumber, EventRecord propValue) {
+	public Message(Integer id, MsgType msgType, Integer number, EventRecord value) {
 		_id = id;
 		_msgType = msgType;
-		_propNumber = propNumber;
-		_propValue = propValue;
+		_number = number;
+		_value = value;
 	}
 
-	public Message(Integer id, Integer propNumber) {
+	public Message(Integer id, Integer number) {
 		_id = id;
 		_msgType = MsgType.PREPARE;
-		_propNumber = propNumber;
-		_propValue = new EventRecord();
+		_number = number;
+		_value = new EventRecord();
 	}
 
-
-	//OLD FORMAT: ID|TSMATRIX|LOG
-	//TODO: IMPLEMENT NEW MESSAGING FORMAT
 	public String toString() {
 		String mStr = "";
 		mStr += _id.toString() + "~";
 		mStr += _msgType.name() + "~";
-		mStr += _propNumber.toString() + "~";
-		mStr += _propValue.toString() + "\n";
+		mStr += _number.toString() + "~";
+		mStr += _value.toString() + "\n";
 		return mStr;
 	}
 
@@ -44,33 +38,16 @@ public class Message implements Serializable{
 		String[] paramTokens = mStr.split("~");
 		Integer id = Integer.parseInt(paramTokens[0]);
 		MsgType msgType = MsgType.valueOf(paramTokens[1]);
-		Integer propNumber = Integer.parseInt(paramTokens[2]);
-		EventRecord propValue = EventRecord.fromString(paramTokens[3]);
-		return new Message(id, msgType, propNumber, propValue);
+		Integer number = Integer.parseInt(paramTokens[2]);
+		EventRecord value = EventRecord.fromString(paramTokens[3]);
+		return new Message(id, msgType, number, value);
 	}
 
 	public void printMessage() {
 		System.out.print("Message: \n\tID: " + _id.toString() + 
 			"\n\tmsgtype: " + _msgType.name() + 
-			"\n\tpropNumber: " + _propNumber.toString() + 
-			"\n\tpropValue:\t");
-		_propValue.printEventRecord();
-
-		/*
-		if (tsMatrix.size() <= 0) {
-			return;
-		}
-		for (int i = 0; i < tsMatrix.size(); i++) {
-			System.out.print("[\t");
-			for (int j = 0; j < tsMatrix.get(i).size(); j++) {
-				System.out.print(tsMatrix.get(i).get(j) + "\t");
-			}
-			System.out.print("]\n");
-		}
-		System.out.println();
-		for (int i = 0; i < log.size(); i++) {
-			System.out.println("Event");
-		}
-		*/
+			"\n\tnumber: " + _number.toString() + 
+			"\n\tvalue:\t");
+		_value.printEventRecord();
 	}
 }

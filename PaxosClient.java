@@ -3,7 +3,6 @@ import java.util.*;
 public class PaxosClient extends Thread {
 
 	Paxos _p;
-	Queue<EventRecord> _q = new LinkedList<EventRecord>();
 
 	public PaxosClient(Paxos p) {
 		_p = p;
@@ -11,13 +10,19 @@ public class PaxosClient extends Thread {
 
 	public void run() {
 		for (int i = 0; i < _p._hosts.length; i++) {
-			System.out.println(_p._id + " Trying to connect to instance " + i);
 			_p._hosts[i].connectToHost();
 		}
 
-		AcceptKeyboardInput keyboardThread = new AcceptKeyboardInput(this);
-		keyboardThread.start();
+		AcceptKeyboardInput keyboardInputThread = new AcceptKeyboardInput(this);
+		keyboardInputThread.start();
+
+		HandleMessages handleMessagesThread = new HandleMessages(this);
+		handleMessagesThread.start();
 	}
+
+	//TODO:theres something wrong with the message passing protocol,
+	//not sure what's happening but when a site receives a prepare
+	//from a site that isn't itself, ,it doesn't respond with promise
 	
 	//Select a proposal number and send a prepare request to majority of acceptors
 	//Wait for acceptor response with a promise not to accept any proposals numbered
@@ -28,16 +33,21 @@ public class PaxosClient extends Thread {
 			_p._hosts[i].sendToHost(msg);
 		}
 	}
+
+	public void promise() {
+		Message msg = new Message(_p._id, Message.MsgType.PROMISE, 
+			_p._accNumber, _p._accValue);
+
+		for (int i = 0; i < _p._hosts.length; i++) {
+			_p._hosts[i].sendToHost(msg);
+		}
+	}
 	
 	//Upon reciept of a response for the 'prepare' message from the majority of acceptors,
 	//send an accept request to majority of acceptors for a proposal n with value v
 	public void propose() {
 		prepare(0);
-		
-	}
-	
-	//When we want to submit a tweet for consensus
-	public void send(Message tweet) {
-		propose();
+		//TODO:	we don't actually have a propose message, should probably
+		//remove this
 	}
 }
