@@ -28,9 +28,12 @@ public class RecvMessages extends Thread {
 					Message m = Message.fromString(line);
 					System.out.print("Recv'd from " + _phClient._name
 						+ ": " + m.toString());
-
+					
 					synchronized(_ps._p) {
-						_ps._p._qMessages.add(m);
+						// Does the ticket check need to be synchronized?
+						if (_ps._p._n < m._number) {
+								_ps._p._qMessages.add(m);
+						}
 					}
 				}
 			}

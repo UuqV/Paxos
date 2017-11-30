@@ -5,7 +5,7 @@ public class EventRecord {
 	String username; //user that does the thing
 	String content; //either: user that is blocked, or tweet text
 	Long realtime;
-	Integer id;
+	Integer id; //Identity of the host it came from
 
 	public EventRecord() {
 		operation = Operation.NONE;

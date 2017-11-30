@@ -45,7 +45,7 @@ public class AcceptKeyboardInput extends Thread {
 
 				//initiate a prepare message
 				//TODO: Figure out what to use for a propNumber
-				_pc.prepare(0);
+				_pc.prepare();
 			}
 
 			//TODO: Add block/unblock commands

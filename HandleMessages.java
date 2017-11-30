@@ -5,18 +5,18 @@ import java.lang.*;
 import java.util.concurrent.*;
 
 public class HandleMessages extends Thread {
-	PaxosClient _pc;
+	Paxos _p;
 
-	public HandleMessages(PaxosClient pc) {
-		_pc = pc;
+	public HandleMessages(Paxos p) {
+		_p = p;
 	}
 
 	public void run() {
 		//constantly check for messages in the queue
 		while (true) {
 			Message m = null;
-			synchronized(_pc._p) {
-				m = _pc._p._qMessages.poll();
+			synchronized(_p) {
+				m = _p._qMessages.poll();
 			}
 
 			//if the queue was not empty, handle the message
@@ -36,18 +36,35 @@ public class HandleMessages extends Thread {
 
 		switch (m._msgType) {
 
-			//handled by the acceptor, sent by proposer
+			//Sent in PHASE 1
+			//Proposer selects a proposal number n and sends a prepare request with number n
+			//Handled by acceptor. On recv PREPARE -> acceptor sends PROMISE
 			case PREPARE:
-				if (m._number > _pc._p._maxPrepare) {
-					_pc._p._maxPrepare = m._number;
-					_pc.promise();
+				if (m._number > _p._maxPrepare) {
+					_p._maxPrepare = m._number;
+					_p._n = Math.max(_p._n, m._number);
+					//ID contains the host to send the promise back to
+					_p.promise(m._id);
 				}
 
 				break;
+			//Sent in PHASE 2
+			//Handled by acceptor, accepts proposal unless it has already responded to a prepare request having number greater than n
+			//Abandon proposal if some proposer has begun trying to issue a higher-numbered one
+			//TODO: Does the proposer need to learn if its proposal was abandoned?
 			case ACCEPT:
+				if (m._number >= _p._maxPrepare) {
+					//TODO: the thing
+					//Set accNum and accVal
+					//Respond to proposer laying
+					//Acceptor responds to proposer with ack
+					//When proposer gets ack, send a commit
+				}
+				//TODO: Clear promises, regardless of whether new info committed
 				break;
 
-			//handled by the proposer, sent by acceptor in response
+			//Sent in PHASE 1
+			//handled by the proposer, sent by acceptor in response to prepare
 			case PROMISE:
 				//TODO: IT'S POSSIBLE TO RECEIVE PROMISE MESSAGES
 				//FROM THE SAME PROCESS TWICE, BECAUSE WE SEND OUT 
@@ -57,13 +74,13 @@ public class HandleMessages extends Thread {
 				//THE PROMISES ARRAYLIST.
 
 				//add the promise message to the list of received promises
-				_pc._p._promises.add(m);
+				_p._promises.add(m);
 
 				//if we have received a promise from majority of 
 				//acceptors, select a value and send accept message
 				//to all sites
-				if (_pc._p._promises.size() > _pc._p._hosts.length /2) {
-					//TODO: 
+				if (_p._promises.size() > _p._hosts.length /2) {
+					_p._prepared = true;
 				}
 
 				break;

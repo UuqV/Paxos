@@ -12,7 +12,14 @@ public class Paxos {
 	Integer _maxPrepare;
 	Integer _accNumber;
 	EventRecord _accValue;
+	
+	//True if this computer's prep requests has received a response from the majority of acceptors
+	Boolean _prepared;
+	
+	//Request ordering number (take a ticket)
+	Integer _n;
 
+	//To keep track of how many acceptors have granted in response to a prep request
 	ArrayList<Message> _promises;
 
 	//Events this instance has created, with local keyboard commands
@@ -26,7 +33,10 @@ public class Paxos {
 		_maxPrepare = -1;
 		_accNumber = -1;
 		_accValue = new EventRecord();
-
+		
+		//Initial prep implicit. Leader initially only has to send accept messages
+		_prepared = true;
+		_n = 0;
 		_promises = new ArrayList<Message>();
 
 		parseConfig("Paxos.config");
@@ -81,13 +91,24 @@ public class Paxos {
 		return null; //unreachable, system will terminate
 	}
 
+	//Send a promise back to the host it came from
+	public void promise(Integer id) {
+		Message msg = new Message(_id, Message.MsgType.PROMISE, 
+			_accNumber, _accValue);
+			_hosts[id].sendToHost(msg);
+	}
+
 	public static void main(String args[]) {
 		Paxos paxos = new Paxos();
-
+		
+		//TODO: Leader Election
+		//First proposal initiated by "leader," can issue proposal number 0
+		//All acceptors have an implicit promise to proposal 0
+		//Leader can skip propose/promise & go directly to accept
 		PaxosServer ps = new PaxosServer(paxos);
 		ps.start();
 
-		PaxosClient pc = new PaxosClient(paxos);
+		PaxosClient pc = new PaxosClient(paxos, 1000);
 		pc.start();
 	}
 }

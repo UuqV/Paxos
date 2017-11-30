@@ -20,14 +20,14 @@ public class PaxosServer extends Thread {
 				InetAddress clientInetAddress = clientSocket.getInetAddress();
 				System.out.println("Received connection from: " + clientInetAddress);
 
-				//Spawn a thread to receive messages from the client that just connected
-				RecvMessages recvMessages = new RecvMessages(clientSocket, this);
-				recvMessages.start();
-
 				//Attempt to reciprocally connect to the client that just connected,
 				//So that this computer can send messages to it as well as recv them
 				PaxosHost connectedClient = _p.findHost(clientInetAddress);
 				connectedClient.connectToHost();
+				
+				//Spawn a thread to receive messages from the client that just connected
+				RecvMessages recvMessages = new RecvMessages(clientSocket, this);
+				recvMessages.start();
 			}
 
 		} catch (Exception e) {
@@ -36,4 +36,5 @@ public class PaxosServer extends Thread {
 
 		System.out.println("Closing Server");
 	}
+	
 }
