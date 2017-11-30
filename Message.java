@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.ArrayList;
 
 public class Message implements Serializable{
-	public enum MsgType { PREPARE, PROMISE, ACCEPT };
+	public enum MsgType { PREPARE, PROMISE, ACCEPT, LEARN };
 	
 	//Message contains two IDs: _id, the sender of the message,
 	//and _value._id, the creator of the tweet in the message
@@ -10,19 +10,22 @@ public class Message implements Serializable{
 	MsgType _msgType;
 	Integer _number;
 	EventRecord _value;
+	Integer _eventID;
 
-	public Message(Integer id, MsgType msgType, Integer number, EventRecord value) {
+	public Message(Integer id, MsgType msgType, Integer number, EventRecord value, Integer eventID) {
 		_id = id;
 		_msgType = msgType;
 		_number = number;
 		_value = value;
+		_eventID = eventID;
 	}
 
-	public Message(Integer id, Integer number) {
+	public Message(Integer id, Integer number, Integer eventID) {
 		_id = id;
 		_msgType = MsgType.PREPARE;
 		_number = number;
 		_value = new EventRecord();
+		_eventID = null;
 	}
 
 	public String toString() {
@@ -30,7 +33,8 @@ public class Message implements Serializable{
 		mStr += _id.toString() + "~";
 		mStr += _msgType.name() + "~";
 		mStr += _number.toString() + "~";
-		mStr += _value.toString() + "\n";
+		mStr += _value.toString() + "~";
+		mStr += _eventID.toString() + "\n";
 		return mStr;
 	}
 
@@ -40,7 +44,8 @@ public class Message implements Serializable{
 		MsgType msgType = MsgType.valueOf(paramTokens[1]);
 		Integer number = Integer.parseInt(paramTokens[2]);
 		EventRecord value = EventRecord.fromString(paramTokens[3]);
-		return new Message(id, msgType, number, value);
+		Integer eventID = Integer.parseInt(paramTokens[4]);
+		return new Message(id, msgType, number, value, eventID);
 	}
 
 	public void printMessage() {

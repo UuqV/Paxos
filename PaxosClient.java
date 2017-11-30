@@ -31,8 +31,10 @@ public class PaxosClient extends Thread {
 	//less than n and with the highest-number proposal it has completed
 	public void prepare() {
 		//Increment proposal number (get a new ticket)
+		//Request a log entry be added at the first index we have available
+		_p._proposedLogEditID = _p.log.size();
 		_p._n++;
-		Message msg = new Message(_p._id, _p._n);
+		Message msg = new Message(_p._id, _p._n, _p._proposedLogEditID);
 		for (int i = 0; i < _p._hosts.length; i++) {
 			_p._hosts[i].sendToHost(msg);
 		}
@@ -58,7 +60,7 @@ public class PaxosClient extends Thread {
 			//Otherwise, send an accept with the other's largest proposal value (accVal)
 			//No matter what, use OWN proposal number
 			Message msg = new Message(_p._id, Message.MsgType.ACCEPT, 
-				_p._accNumber, _p._accValue);
+				_p._accNumber, _p._accValue, _p._proposedLogEditID);
 
 			for (int i = 0; i < _p._hosts.length; i++) {
 				_p._hosts[i].sendToHost(msg);

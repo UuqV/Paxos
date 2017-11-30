@@ -44,7 +44,7 @@ public class HandleMessages extends Thread {
 					_p._maxPrepare = m._number;
 					_p._n = Math.max(_p._n, m._number);
 					//ID contains the host to send the promise back to
-					_p.promise(m._id);
+					_p.promise(m._id, m._eventID);
 				}
 
 				break;
@@ -56,9 +56,9 @@ public class HandleMessages extends Thread {
 				if (m._number >= _p._maxPrepare) {
 					//TODO: the thing
 					//Set accNum and accVal
-					//Respond to proposer laying
-					//Acceptor responds to proposer with ack
-					//When proposer gets ack, send a commit
+					//Add event to log
+					_p.log.add(m._eventID, m._value);
+					//Send LEARN message
 				}
 				//TODO: Clear promises, regardless of whether new info committed
 				break;
@@ -84,6 +84,11 @@ public class HandleMessages extends Thread {
 				}
 
 				break;
+				
+			case LEARN:
+			
+				break;
+				
 		}
 	}
 }

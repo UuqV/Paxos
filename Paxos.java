@@ -13,6 +13,7 @@ public class Paxos {
 	Integer _accNumber;
 	EventRecord _accValue;
 	
+
 	//True if this computer's prep requests has received a response from the majority of acceptors
 	Boolean _prepared;
 	
@@ -28,7 +29,11 @@ public class Paxos {
 	//Messages this instance has received, to be processed by the
 	//HandleMessages thread, started by PaxosClient
 	Queue<Message> _qMessages = new LinkedList<Message>();
-
+	
+	ArrayList<EventRecord> log = new ArrayList<EventRecord>();
+	//The index of the log entry that we are trying to propose a value for, if any
+	Integer _proposedLogEditID;
+	
 	public Paxos() {
 		_maxPrepare = -1;
 		_accNumber = -1;
@@ -38,6 +43,9 @@ public class Paxos {
 		_prepared = true;
 		_n = 0;
 		_promises = new ArrayList<Message>();
+		
+		//TODO: PROBABLY SHOULD NOT BE 0
+		_proposedLogEditID = 0;
 
 		parseConfig("Paxos.config");
 	}
@@ -91,10 +99,10 @@ public class Paxos {
 		return null; //unreachable, system will terminate
 	}
 
-	//Send a promise back to the host it came from
-	public void promise(Integer id) {
+	//Send a promise back to the host it came from, FOR THE MESSAGE THAT IT REQUESTED.
+	public void promise(Integer id, Integer eventID) {
 		Message msg = new Message(_id, Message.MsgType.PROMISE, 
-			_accNumber, _accValue);
+			_accNumber, _accValue, eventID);
 			_hosts[id].sendToHost(msg);
 	}
 
