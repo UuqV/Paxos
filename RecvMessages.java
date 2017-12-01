@@ -30,10 +30,7 @@ public class RecvMessages extends Thread {
 						+ ": " + m.toString());
 					
 					synchronized(_ps._p) {
-						// Does the ticket check need to be synchronized?
-						if (_ps._p._n < m._number) {
-								_ps._p._qMessages.add(m);
-						}
+						_ps._p._qMessages.add(m);
 					}
 				}
 			}

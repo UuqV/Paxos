@@ -22,8 +22,11 @@ public class AcceptKeyboardInput extends Thread {
 				continue;
 			}
 			if (inputTokens[0].equals("view")) {
-				//view();
+				_pc._p.view();
 				continue;
+			}
+			if (inputTokens[0].equals("exit")) {
+				System.exit(0);
 			}
 			if (inputTokens.length < 2) {
 				System.out.println("Incomplete command");

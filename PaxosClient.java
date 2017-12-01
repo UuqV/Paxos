@@ -26,51 +26,19 @@ public class PaxosClient extends Thread {
 	//not sure what's happening but when a site receives a prepare
 	//from a site that isn't itself, ,it doesn't respond with promise
 	
-	//Select a proposal number and send a prepare request to majority of acceptors
+	//Select a proposal number and send a prepare request to all acceptors
 	//Wait for acceptor response with a promise not to accept any proposals numbered
 	//less than n and with the highest-number proposal it has completed
 	public void prepare() {
 		//Increment proposal number (get a new ticket)
 		//Request a log entry be added at the first index we have available
 		_p._proposedLogEditID = _p.log.size();
-		_p._n++;
-		Message msg = new Message(_p._id, _p._n, _p._proposedLogEditID);
+		_p._propNumber++; //TODO increment by more than 1 each time
+		Message msg = new Message(_p._id, _p._propNumber);
 		for (int i = 0; i < _p._hosts.length; i++) {
 			_p._hosts[i].sendToHost(msg);
 		}
-		
-		//Wait for response from majority of acceptors to prepare
-		Integer timeCount = 0;
-		while(_p._prepared == false && timeCount < _timeout) {
-			try {
-				Thread.sleep(1);
-			} catch (InterruptedException e) {
-				
-			}
-			timeCount++;
-		}
-		if (_p._prepared == true) {
-			pleaseAccept();
-		}
 	}
 
-	public void pleaseAccept() {
-		if (_p._prepared == true) {
-			//If all promises are null, use my proposal value
-			//Otherwise, send an accept with the other's largest proposal value (accVal)
-			//No matter what, use OWN proposal number
-			Message msg = new Message(_p._id, Message.MsgType.ACCEPT, 
-				_p._accNumber, _p._accValue, _p._proposedLogEditID);
-
-			for (int i = 0; i < _p._hosts.length; i++) {
-				_p._hosts[i].sendToHost(msg);
-			}
-			//Clear the promises whether accepted or not
-			_p._promises = new ArrayList<Message>();
-			_p._prepared = false;
-		}
-	}
 	
-
 }
-

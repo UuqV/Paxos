@@ -18,7 +18,7 @@ public class Paxos {
 	Boolean _prepared;
 	
 	//Request ordering number (take a ticket)
-	Integer _n;
+	Integer _propNumber;
 
 	//To keep track of how many acceptors have granted in response to a prep request
 	ArrayList<Message> _promises;
@@ -39,9 +39,7 @@ public class Paxos {
 		_accNumber = -1;
 		_accValue = new EventRecord();
 		
-		//Initial prep implicit. Leader initially only has to send accept messages
-		_prepared = true;
-		_n = 0;
+		_propNumber = 0; //TODO: SHOULD NOT BE ZERO
 		_promises = new ArrayList<Message>();
 		
 		//TODO: PROBABLY SHOULD NOT BE 0
@@ -104,6 +102,38 @@ public class Paxos {
 		Message msg = new Message(_id, Message.MsgType.PROMISE, 
 			_accNumber, _accValue, eventID);
 			_hosts[id].sendToHost(msg);
+	}
+
+	public void pleaseAccept() {
+		synchronized(this) {
+			//If all promises are null, use my proposal value
+			//Otherwise, send an accept with the other's largest proposal value (accVal)
+			//No matter what, use OWN proposal number
+			Message msg = new Message(_id, Message.MsgType.ACCEPT, 
+				_accNumber, _accValue, _proposedLogEditID);
+
+			for (int i = 0; i < _hosts.length; i++) {
+				_hosts[i].sendToHost(msg);
+			}
+			//Clear the promises whether accepted or not
+			_promises = new ArrayList<Message>();
+			_prepared = false;
+		}
+	}
+
+
+
+	public void view() {
+		System.out.println("Number of events in log: " + log.size());
+		for (int i = 0; i < log.size(); i++) {
+			log.get(i).printEventRecord();
+		}
+	}
+
+	public Integer nextHighestPropNum(Integer n) {
+		int propNum = n + (_hosts.length - (n % _hosts.length));
+		propNum += 1 + _id;
+		return propNum;
 	}
 
 	public static void main(String args[]) {

@@ -41,10 +41,11 @@ public class HandleMessages extends Thread {
 			//Handled by acceptor. On recv PREPARE -> acceptor sends PROMISE
 			case PREPARE:
 				if (m._number > _p._maxPrepare) {
+					System.out.println("prepare message number > maxPrepare");
 					_p._maxPrepare = m._number;
-					_p._n = Math.max(_p._n, m._number);
+					_p._propNumber = Math.max(_p._propNumber, _p.nextHighestPropNum(m._number)); //TODO: This should be set differently
 					//ID contains the host to send the promise back to
-					_p.promise(m._id, m._eventID);
+					_p.promise(m._id, _p._accNumber);
 				}
 
 				break;
@@ -53,11 +54,12 @@ public class HandleMessages extends Thread {
 			//Abandon proposal if some proposer has begun trying to issue a higher-numbered one
 			//TODO: Does the proposer need to learn if its proposal was abandoned?
 			case ACCEPT:
+				System.out.println("Received ACCEPT message: m._number = " + m._number + " and maxPrepare = " + _p._maxPrepare);
 				if (m._number >= _p._maxPrepare) {
 					//TODO: the thing
 					//Set accNum and accVal
 					//Add event to log
-					_p.log.add(m._eventID, m._value);
+					_p.log.add(m._eventID, m._value); //TODO: Move this after learning not accepting
 					//Send LEARN message
 				}
 				//TODO: Clear promises, regardless of whether new info committed
@@ -80,7 +82,7 @@ public class HandleMessages extends Thread {
 				//acceptors, select a value and send accept message
 				//to all sites
 				if (_p._promises.size() > _p._hosts.length /2) {
-					_p._prepared = true;
+					_p.pleaseAccept();
 				}
 
 				break;
