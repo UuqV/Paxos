@@ -33,11 +33,12 @@ public class PaxosClient extends Thread {
 		//Increment proposal number (get a new ticket)
 		//Request a log entry be added at the first index we have available
 		_p._proposedLogEditID = _p.log.size();
-		_p._propNumber++; //TODO increment by more than 1 each time
+		_p._propNumber = _p.nextHighestPropNum(_p._propNumber);
 		Message msg = new Message(_p._id, _p._propNumber);
 		for (int i = 0; i < _p._hosts.length; i++) {
 			_p._hosts[i].sendToHost(msg);
 		}
+		_p._sentPropNumber = _p._propNumber;
 	}
 
 	

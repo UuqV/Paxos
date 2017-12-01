@@ -13,12 +13,12 @@ public class Paxos {
 	Integer _accNumber;
 	EventRecord _accValue;
 	
-
-	//True if this computer's prep requests has received a response from the majority of acceptors
-	Boolean _prepared;
-	
 	//Request ordering number (take a ticket)
+	//_propNumber stores the highest propNumber either it has used or received from anotehr site
 	Integer _propNumber;
+	//_sentPropNumber stores the most recent propNumber sent by THIS site, so that when we send
+	//accept messages we know what propNumber to use
+	Integer _sentPropNumber;
 
 	//To keep track of how many acceptors have granted in response to a prep request
 	ArrayList<Message> _promises;
@@ -39,7 +39,8 @@ public class Paxos {
 		_accNumber = -1;
 		_accValue = new EventRecord();
 		
-		_propNumber = 0; //TODO: SHOULD NOT BE ZERO
+		_propNumber = 0; //TODO: SHOULD NOT BE ZERO (actually 0 is probably fine because of nexthighestpropnum?)
+		_sentPropNumber = null;
 		_promises = new ArrayList<Message>();
 		
 		//TODO: PROBABLY SHOULD NOT BE 0
@@ -109,15 +110,36 @@ public class Paxos {
 			//If all promises are null, use my proposal value
 			//Otherwise, send an accept with the other's largest proposal value (accVal)
 			//No matter what, use OWN proposal number
-			Message msg = new Message(_id, Message.MsgType.ACCEPT, 
-				_accNumber, _accValue, _proposedLogEditID);
+			EventRecord msgValue = new EventRecord();
+			Integer msgNumber = null;
+			for (int i = 0; i < _promises.size(); i++) {
+				if (_promises.get(i)._value.operation != EventRecord.Operation.NONE
+					&& _promises.get(i)._number > msgNumber) {
+					msgValue = _promises.get(i)._value;
+				}
+			}
+
+			Message msg = null;
+
+			//TODO: make sure to clear the accNumber and accValue after learning a value and completing synod
+
+			//if received a value back in a promise:
+			if (msgValue.operation != EventRecord.Operation.NONE) {
+				msg = new Message(_id, Message.MsgType.ACCEPT, msgNumber,
+					msgValue, _proposedLogEditID);
+			} else { //if all promises are null:
+				if (_qMyEvents.isEmpty()) {
+					System.out.println("ERROR: THIS INSTANCE SENT PREPARE WITHOUT SAVING A TWEET TO ITS QUEUE");
+				}
+				msg = new Message(_id, Message.MsgType.ACCEPT, _sentPropNumber,
+					_qMyEvents.remove(), _proposedLogEditID);
+			}
 
 			for (int i = 0; i < _hosts.length; i++) {
 				_hosts[i].sendToHost(msg);
 			}
 			//Clear the promises whether accepted or not
 			_promises = new ArrayList<Message>();
-			_prepared = false;
 		}
 	}
 

@@ -44,7 +44,8 @@ public class AcceptKeyboardInput extends Thread {
 
 				//add that tweet to the QUEUE
 				//TODO: SYNCHRONIZE
-				_pc._p._qMyEvents.add(tweet);
+				_pc._p._qMyEvents.add(tweet); //TODO: make sure that if we don't actually end up
+				//accepting this event right away that we resend it eventually
 
 				//initiate a prepare message
 				//TODO: Figure out what to use for a propNumber
