@@ -35,7 +35,7 @@ public class Paxos {
 	Integer _proposedLogEditID;
 	
 	public Paxos() {
-		_maxPrepare = -1;
+		_maxPrepare = 0;
 		_accNumber = -1;
 		_accValue = new EventRecord();
 		
@@ -142,8 +142,15 @@ public class Paxos {
 			_promises = new ArrayList<Message>();
 		}
 	}
-
-
+	
+	public void learn() {
+		Message msg = new Message(_id, Message.MsgType.LEARN, 
+			_accNumber, _accValue, eventID);
+			
+		for (int i = 0; i < _hosts.length; i++) {
+			_hosts[id].sendToHost(msg);
+		}
+	}
 
 	public void view() {
 		System.out.println("Number of events in log: " + log.size());

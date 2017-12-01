@@ -59,8 +59,8 @@ public class HandleMessages extends Thread {
 					//TODO: the thing
 					//Set accNum and accVal
 					//Add event to log
-					_p.log.add(m._eventID, m._value); //TODO: Move this after learning not accepting
-					//Send LEARN message
+					learn();
+					
 				}
 				//TODO: Clear promises, regardless of whether new info committed
 				break;
@@ -88,7 +88,7 @@ public class HandleMessages extends Thread {
 				break;
 				
 			case LEARN:
-			
+				_p.log.add(m._eventID, m._value);
 				break;
 				
 		}
