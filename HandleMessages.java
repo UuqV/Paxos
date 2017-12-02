@@ -49,21 +49,6 @@ public class HandleMessages extends Thread {
 				}
 
 				break;
-			//Sent in PHASE 2
-			//Handled by acceptor, accepts proposal unless it has already responded to a prepare request having number greater than n
-			//Abandon proposal if some proposer has begun trying to issue a higher-numbered one
-			//TODO: Does the proposer need to learn if its proposal was abandoned?
-			case ACCEPT:
-				System.out.println("Received ACCEPT message: m._number = " + m._number + " and maxPrepare = " + _p._maxPrepare);
-				if (m._number >= _p._maxPrepare) {
-					//TODO: the thing
-					//Set accNum and accVal
-					//Add event to log
-					learn();
-					
-				}
-				//TODO: Clear promises, regardless of whether new info committed
-				break;
 
 			//Sent in PHASE 1
 			//handled by the proposer, sent by acceptor in response to prepare
@@ -86,11 +71,41 @@ public class HandleMessages extends Thread {
 				}
 
 				break;
-				
-			case LEARN:
-				_p.log.add(m._eventID, m._value);
+
+			//Sent in PHASE 2
+			//Handled by acceptor, accepts proposal unless it has already responded to a prepare request having number greater than n
+			//Abandon proposal if some proposer has begun trying to issue a higher-numbered one
+			//TODO: Does the proposer need to learn if its proposal was abandoned?
+			case ACCEPT:
+				System.out.println("Received ACCEPT message: m._number = " + m._number + " and maxPrepare = " + _p._maxPrepare);
+				if (m._number >= _p._maxPrepare) {
+					//TODO: the thing
+					//Set accNum and accVal
+					_p._accNumber = m._number;
+					_p._accValue = m._value;
+					
+					_p.learn();
+					
+				}
+				//TODO: Clear promises, regardless of whether new info committed
 				break;
 				
+			case LEARN:
+				if (_p._learns.get(m._value.toString()) == null) {
+					_p._learns.put(m._value.toString(), 1);
+				} else {
+					_p._learns.put(m._value.toString(), _p._learns.get(m._value.toString()) + 1);
+					if (_p._learns.get(m._value.toString()) > _p._hosts.length/2) {
+						_p.commit(m);
+					}
+				}
+
+				//_p.log.add(m._eventID, m._value);
+				break;
+			
+			case COMMIT:
+				_p.addToLog(m);
+				break;
 		}
 	}
 }

@@ -23,7 +23,11 @@ public class Paxos {
 	//To keep track of how many acceptors have granted in response to a prep request
 	ArrayList<Message> _promises;
 
-	//Events this instance has created, with local keyboard commands
+	//eventrecord.tostring mapped to number of learns of that event this site has received.
+	HashMap<String, Integer> _learns;
+
+	//Events this instance has created, with local keyboard commands.  Events are stored here until they
+	//are successfully added to the log.
 	Queue<EventRecord> _qMyEvents = new LinkedList<EventRecord>();
 
 	//Messages this instance has received, to be processed by the
@@ -39,9 +43,11 @@ public class Paxos {
 		_accNumber = -1;
 		_accValue = new EventRecord();
 		
-		_propNumber = 0; //TODO: SHOULD NOT BE ZERO (actually 0 is probably fine because of nexthighestpropnum?)
+		_propNumber = 0;
 		_sentPropNumber = null;
+
 		_promises = new ArrayList<Message>();
+		_learns = new HashMap<String, Integer>();
 		
 		//TODO: PROBABLY SHOULD NOT BE 0
 		_proposedLogEditID = 0;
@@ -99,9 +105,9 @@ public class Paxos {
 	}
 
 	//Send a promise back to the host it came from, FOR THE MESSAGE THAT IT REQUESTED.
-	public void promise(Integer id, Integer eventID) {
+	public void promise(Integer id, Integer logIndex) {
 		Message msg = new Message(_id, Message.MsgType.PROMISE, 
-			_accNumber, _accValue, eventID);
+			_accNumber, _accValue, logIndex);
 			_hosts[id].sendToHost(msg);
 	}
 
@@ -111,7 +117,7 @@ public class Paxos {
 			//Otherwise, send an accept with the other's largest proposal value (accVal)
 			//No matter what, use OWN proposal number
 			EventRecord msgValue = new EventRecord();
-			Integer msgNumber = null;
+			Integer msgNumber = -1;
 			for (int i = 0; i < _promises.size(); i++) {
 				if (_promises.get(i)._value.operation != EventRecord.Operation.NONE
 					&& _promises.get(i)._number > msgNumber) {
@@ -145,11 +151,36 @@ public class Paxos {
 	
 	public void learn() {
 		Message msg = new Message(_id, Message.MsgType.LEARN, 
-			_accNumber, _accValue, eventID);
+			_accNumber, _accValue, _proposedLogEditID);
 			
 		for (int i = 0; i < _hosts.length; i++) {
-			_hosts[id].sendToHost(msg);
+			_hosts[i].sendToHost(msg);
 		}
+	}
+
+	public void commit(Message m) {
+		Message msg = new Message(_id, Message.MsgType.COMMIT,
+			m._number, m._value, m._logIndex);
+
+		for (int i = 0; i < _hosts.length; i++) {
+			_hosts[i].sendToHost(msg);
+		}
+	}
+
+	public synchronized void addToLog(Message m) {
+		if (!(log.size() > m._logIndex)) {
+			log.add(m._value);
+		}
+
+		//reset state variables, potentially begin new propose 
+		_promises.clear();
+		_learns.clear();
+
+		_accNumber = -1;
+		_accValue = new EventRecord();
+		_maxPrepare = 0;
+
+
 	}
 
 	public void view() {

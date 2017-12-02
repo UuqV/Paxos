@@ -22,9 +22,10 @@ public class PaxosClient extends Thread {
 		handleMessagesThread.start();
 	}
 
-	//TODO:theres something wrong with the message passing protocol,
-	//not sure what's happening but when a site receives a prepare
-	//from a site that isn't itself, ,it doesn't respond with promise
+	//TODO: MAKE SURE THAT THE ALGORITHM IS USING THE SAME _PROPOSEDLOGEDITID AT 
+	//EVERY STEP.  RIGHT NOW IT IS NOT PASSED THRU - PLEASEACCEPT AND LEARN BOTH
+	//USE THE INTERNAL LOGEDITID STORED ON THE PAXOS INSTANCE, NOT THE ONE
+	//PASSED VIA MESSAGE.  FIX THIS!!!!!!
 	
 	//Select a proposal number and send a prepare request to all acceptors
 	//Wait for acceptor response with a promise not to accept any proposals numbered
