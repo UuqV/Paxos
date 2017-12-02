@@ -22,6 +22,7 @@ public class AcceptKeyboardInput extends Thread {
 				continue;
 			}
 			if (inputTokens[0].equals("view")) {
+				System.out.println("Called view");
 				_pc._p.view();
 				continue;
 			}
@@ -47,9 +48,24 @@ public class AcceptKeyboardInput extends Thread {
 				_pc._p._qMyEvents.add(tweet); //TODO: make sure that if we don't actually end up
 				//accepting this event right away that we resend it eventually
 
-				//initiate a prepare message
-				//TODO: Figure out what to use for a propNumber
-				_pc.prepare();
+				//initiate a prepare message, or accept if we are the distinguished proposer
+				if (_pc._p.log.size() == 0) {
+					_pc.prepare();
+				}
+
+				//TODO: AFTER ADDING DISTINGUISHED PROPOSER LOGIC, THE FIRST SITE'S VIEW CALL BLOCKS?  OR FAILS?
+				//SOMETHING'S HAPPNEING WHERE IT DOESNT WORK.  THE SECOND SITE WORKS JUST FINE, AND IT SEEMS THAT
+				//THE FIRST SITE IS STILL CAPABLE OF PROCESSING MESSAGES AFTER THE FACT, IT'S JUST UNCLEAR WHAT'S
+				//IN THE LOG BECAUSE I CAN'T PRINT ITS CONTENTS
+				
+				//if the most recent log element is this site, then we can skip
+				//the prepare phase as the distinguished proposer and go right
+				//to calling accept
+				if (_pc._p.log.get(_pc._p.log.size() - 1).id == _pc._p._id) {
+					_pc._p.pleaseAccept(_pc._p.log.size());
+				} else {
+					_pc.prepare();
+				}
 			}
 
 			//TODO: Add block/unblock commands
