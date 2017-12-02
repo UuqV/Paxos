@@ -35,8 +35,6 @@ public class Paxos {
 	Queue<Message> _qMessages = new LinkedList<Message>();
 	
 	ArrayList<EventRecord> log = new ArrayList<EventRecord>();
-	//The index of the log entry that we are trying to propose a value for, if any
-	Integer _proposedLogEditID;
 	
 	public Paxos() {
 		_maxPrepare = 0;
@@ -48,9 +46,6 @@ public class Paxos {
 
 		_promises = new ArrayList<Message>();
 		_learns = new HashMap<String, Integer>();
-		
-		//TODO: PROBABLY SHOULD NOT BE 0
-		_proposedLogEditID = 0;
 
 		parseConfig("Paxos.config");
 	}
@@ -111,7 +106,7 @@ public class Paxos {
 			_hosts[id].sendToHost(msg);
 	}
 
-	public void pleaseAccept() {
+	public void pleaseAccept(Integer logIndex) {
 		synchronized(this) {
 			//If all promises are null, use my proposal value
 			//Otherwise, send an accept with the other's largest proposal value (accVal)
@@ -132,13 +127,13 @@ public class Paxos {
 			//if received a value back in a promise:
 			if (msgValue.operation != EventRecord.Operation.NONE) {
 				msg = new Message(_id, Message.MsgType.ACCEPT, msgNumber,
-					msgValue, _proposedLogEditID);
+					msgValue, logIndex);
 			} else { //if all promises are null:
 				if (_qMyEvents.isEmpty()) {
 					System.out.println("ERROR: THIS INSTANCE SENT PREPARE WITHOUT SAVING A TWEET TO ITS QUEUE");
 				}
 				msg = new Message(_id, Message.MsgType.ACCEPT, _sentPropNumber,
-					_qMyEvents.remove(), _proposedLogEditID);
+					_qMyEvents.remove(), logIndex);
 			}
 
 			for (int i = 0; i < _hosts.length; i++) {
@@ -149,9 +144,9 @@ public class Paxos {
 		}
 	}
 	
-	public void learn() {
+	public void learn(Integer logIndex) {
 		Message msg = new Message(_id, Message.MsgType.LEARN, 
-			_accNumber, _accValue, _proposedLogEditID);
+			_accNumber, _accValue, logIndex);
 			
 		for (int i = 0; i < _hosts.length; i++) {
 			_hosts[i].sendToHost(msg);
@@ -168,7 +163,8 @@ public class Paxos {
 	}
 
 	public synchronized void addToLog(Message m) {
-		if (!(log.size() > m._logIndex)) {
+		System.out.println("\n\tADDING TO LOG AT INDEX " + m._logIndex + "\n");
+		if ((log.size() == m._logIndex)) {
 			log.add(m._value);
 		}
 
@@ -179,8 +175,6 @@ public class Paxos {
 		_accNumber = -1;
 		_accValue = new EventRecord();
 		_maxPrepare = 0;
-
-
 	}
 
 	public void view() {

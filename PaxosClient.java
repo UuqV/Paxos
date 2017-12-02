@@ -21,21 +21,15 @@ public class PaxosClient extends Thread {
 		HandleMessages handleMessagesThread = new HandleMessages(_p);
 		handleMessagesThread.start();
 	}
-
-	//TODO: MAKE SURE THAT THE ALGORITHM IS USING THE SAME _PROPOSEDLOGEDITID AT 
-	//EVERY STEP.  RIGHT NOW IT IS NOT PASSED THRU - PLEASEACCEPT AND LEARN BOTH
-	//USE THE INTERNAL LOGEDITID STORED ON THE PAXOS INSTANCE, NOT THE ONE
-	//PASSED VIA MESSAGE.  FIX THIS!!!!!!
 	
 	//Select a proposal number and send a prepare request to all acceptors
 	//Wait for acceptor response with a promise not to accept any proposals numbered
 	//less than n and with the highest-number proposal it has completed
 	public void prepare() {
 		//Increment proposal number (get a new ticket)
-		//Request a log entry be added at the first index we have available
-		_p._proposedLogEditID = _p.log.size();
 		_p._propNumber = _p.nextHighestPropNum(_p._propNumber);
-		Message msg = new Message(_p._id, _p._propNumber);
+		//Request a log entry be added at the first index we have available
+		Message msg = new Message(_p._id, _p._propNumber, _p.log.size());
 		for (int i = 0; i < _p._hosts.length; i++) {
 			_p._hosts[i].sendToHost(msg);
 		}

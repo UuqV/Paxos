@@ -20,12 +20,12 @@ public class Message implements Serializable{
 		_logIndex = logIndex;
 	}
 
-	public Message(Integer id, Integer number) {
+	public Message(Integer id, Integer number, Integer logIndex) {
 		_id = id;
 		_msgType = MsgType.PREPARE;
 		_number = number;
 		_value = new EventRecord();
-		_logIndex = -1;
+		_logIndex = logIndex;
 	}
 
 	public String toString() {

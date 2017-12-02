@@ -45,7 +45,7 @@ public class HandleMessages extends Thread {
 					_p._maxPrepare = m._number;
 					_p._propNumber = Math.max(_p._propNumber, _p.nextHighestPropNum(m._number)); //TODO: This should be set differently
 					//ID contains the host to send the promise back to
-					_p.promise(m._id, _p._accNumber);
+					_p.promise(m._id, m._logIndex);
 				}
 
 				break;
@@ -67,7 +67,7 @@ public class HandleMessages extends Thread {
 				//acceptors, select a value and send accept message
 				//to all sites
 				if (_p._promises.size() > _p._hosts.length /2) {
-					_p.pleaseAccept();
+					_p.pleaseAccept(m._logIndex);
 				}
 
 				break;
@@ -84,10 +84,9 @@ public class HandleMessages extends Thread {
 					_p._accNumber = m._number;
 					_p._accValue = m._value;
 					
-					_p.learn();
+					_p.learn(m._logIndex);
 					
 				}
-				//TODO: Clear promises, regardless of whether new info committed
 				break;
 				
 			case LEARN:
@@ -99,8 +98,6 @@ public class HandleMessages extends Thread {
 						_p.commit(m);
 					}
 				}
-
-				//_p.log.add(m._eventID, m._value);
 				break;
 			
 			case COMMIT:
