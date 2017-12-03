@@ -40,8 +40,9 @@ public class HandleMessages extends Thread {
 			//Proposer selects a proposal number n and sends a prepare request with number n
 			//Handled by acceptor. On recv PREPARE -> acceptor sends PROMISE
 			case PREPARE:
+			System.out.println("Handling PREPARE");
 				if (m._number > _p._maxPrepare) {
-					System.out.println("prepare message number > maxPrepare");
+					
 					_p._maxPrepare = m._number;
 					_p._propNumber = Math.max(_p._propNumber, _p.nextHighestPropNum(m._number)); //TODO: This should be set differently
 					//ID contains the host to send the promise back to
@@ -53,6 +54,7 @@ public class HandleMessages extends Thread {
 			//Sent in PHASE 1
 			//handled by the proposer, sent by acceptor in response to prepare
 			case PROMISE:
+			System.out.println("Handling PROMISE");
 				//TODO: IT'S POSSIBLE TO RECEIVE PROMISE MESSAGES
 				//FROM THE SAME PROCESS TWICE, BECAUSE WE SEND OUT 
 				//RESPONSE MESSAGES BEFORE WE HAVE RECEIVED PROMISES
@@ -77,7 +79,7 @@ public class HandleMessages extends Thread {
 			//Abandon proposal if some proposer has begun trying to issue a higher-numbered one
 			//TODO: Does the proposer need to learn if its proposal was abandoned?
 			case ACCEPT:
-				System.out.println("Received ACCEPT message: m._number = " + m._number + " and maxPrepare = " + _p._maxPrepare);
+				System.out.println("Handling ACCEPT message: m._number = " + m._number + " and maxPrepare = " + _p._maxPrepare);
 				if (m._number >= _p._maxPrepare) {
 					//TODO: the thing
 					//Set accNum and accVal
@@ -90,6 +92,9 @@ public class HandleMessages extends Thread {
 				break;
 				
 			case LEARN:
+			System.out.println("Handling LEARN");
+			//It's in a map so that we can count the learns received of EACH VALUE
+			//Check if it's already in the map
 				if (_p._learns.get(m._value.toString()) == null) {
 					_p._learns.put(m._value.toString(), 1);
 				} else {
@@ -101,6 +106,7 @@ public class HandleMessages extends Thread {
 				break;
 			
 			case COMMIT:
+			System.out.println("Handling COMMIT");
 				_p.addToLog(m);
 				break;
 		}
