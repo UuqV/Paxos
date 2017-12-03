@@ -100,16 +100,39 @@ public class Paxos {
 		return null; //unreachable, system will terminate
 	}
 
+	//Select a proposal number and send a prepare request to all acceptors
+	//Wait for acceptor response with a promise not to accept any proposals numbered
+	//less than n and with the highest-number proposal it has completed
+	public void prepare() {
+		//Increment proposal number (get a new ticket)
+		_propNumber = nextHighestPropNum(_propNumber);
+		//Request a log entry be added at the first index we have available
+		Message msg = new Message(_id, _propNumber, log.size());
+		for (int i = 0; i < _hosts.length; i++) {
+			_hosts[i].sendToHost(msg);
+		}
+		_sentPropNumber = _propNumber;
+	}
+
 	//Send a promise back to the host it came from, FOR THE MESSAGE THAT IT REQUESTED.
-	public void promise(Integer id, Integer logIndex) {
-		System.out.println("Sending promise request...");
-		Message msg = new Message(_id, Message.MsgType.PROMISE, 
-			_accNumber, _accValue, logIndex);
-			_hosts[id].sendToHost(msg);
+	public void promise(Integer id, Message prepare) {
+		Message msg = null;
+
+		//if we are operating on a logindex that has already been committed at this site,
+		//send the committed value back with a higher propnum
+		if (prepare._logIndex < log.size()) {
+			msg = new Message(_id, Message.MsgType.PROMISE,
+				nextHighestPropNum(prepare._number), log.get(prepare._logIndex), prepare._logIndex);
+
+		} else {
+			msg = new Message(_id, Message.MsgType.PROMISE, 
+				_accNumber, _accValue, prepare._logIndex);
+		}
+		
+		_hosts[id].sendToHost(msg);
 	}
 
 	public void pleaseAccept(Integer logIndex) {
-		System.out.println("Sending accept request...");
 		synchronized(this) {
 			//If all promises are null, use my proposal value
 			//Otherwise, send an accept with the other's largest proposal value (accVal)
@@ -120,6 +143,7 @@ public class Paxos {
 				if (_promises.get(i)._value.operation != EventRecord.Operation.NONE
 					&& _promises.get(i)._number > msgNumber) {
 					msgValue = _promises.get(i)._value;
+					msgNumber = _promises.get(i)._number;
 				}
 			}
 
@@ -136,7 +160,8 @@ public class Paxos {
 					System.out.println("ERROR: THIS INSTANCE SENT PREPARE WITHOUT SAVING A TWEET TO ITS QUEUE");
 				}
 				msg = new Message(_id, Message.MsgType.ACCEPT, _sentPropNumber,
-					_qMyEvents.remove(), logIndex);
+					_qMyEvents.peek(), logIndex); //TODO: CHANGED REMOVE() TO PEEK(), WHICH DOES NOT REMOVE QUEUE ELEMENT.
+													//FIGURE OUT WHERE TO REMOVE THE ELEMENT.
 			}
 
 			for (int i = 0; i < _hosts.length; i++) {
@@ -148,7 +173,6 @@ public class Paxos {
 	}
 	
 	public void learn(Integer logIndex) {
-		System.out.println("Sending LEARN request...");
 		Message msg = new Message(_id, Message.MsgType.LEARN, 
 			_accNumber, _accValue, logIndex);
 			
@@ -158,7 +182,6 @@ public class Paxos {
 	}
 
 	public void commit(Message m) {
-		System.out.println("Sending COMMIT request...");
 		Message msg = new Message(_id, Message.MsgType.COMMIT,
 			m._number, m._value, m._logIndex);
 
@@ -183,9 +206,16 @@ public class Paxos {
 
 	public synchronized void addToLog(Message m) {
 		if ((log.size() == m._logIndex)) {
-			System.out.println("\n\tADDING TO LOG AT INDEX " + m._logIndex + "\n");
+			if (!_qMyEvents.isEmpty()) {
+				System.out.println("\n\t_qMyEvents.peek(): " + _qMyEvents.peek().toString());
+				System.out.println("\tm._value.toString(): " + m._value.toString());
+				if (m._value.toString().equals(_qMyEvents.peek().toString())) {
+					System.out.println("\tTHESE VALuES ARE EQUAL, REMOVING FROM QUEUE\n");
+					_qMyEvents.remove();
+					System.out.println("QuEUE CONTENTS: " + _qMyEvents);
+				}
+			}
 			log.add(m._value);
-			view();
 
 			if (m._value.operation == EventRecord.Operation.BLOCK) {
 				block(m._value);
@@ -202,27 +232,28 @@ public class Paxos {
 		_accValue = new EventRecord();
 		_maxPrepare = 0;
 
-		//TODO: IF WE ADD AN EVENT TO THE LOG AND IT'S NOT THE ONE
-		//WE CAME UP WITH, START A NEW PROPOSE CHAIN WITH WHATEVER
-		//MESSAGE IS IN THE MESSAGE QUEUE.  ALSO MAKE SURE THAT
-		//ACCEPT MESSAGES DON'T REMOVE THE ELEMENT IN CASE IT GETS
-		//ACCEPTED
-
 		//TODO: WHEN WE COMMIT SOMETHING TO THE LOG - THROW THAT 
 		//GOOD BOY INTO STABLE STORAGE
+
+		if (!_qMyEvents.isEmpty()) {
+			System.out.println(_qMyEvents);
+			prepare();
+		}
 	}
 
 	public void view() {
-		System.out.println("Number of events in log: " + log.size());
+		System.out.println("Number of events in log: " + log.size() + "\n");
 		for (int i = 0; i < log.size(); i++) {
 			EventRecord er = log.get(i);
 			if (er.operation == EventRecord.Operation.TWEET) {
 				if (blocklist.get(_hosts[_id]._name) != null) {
 					if (!blocklist.get(_hosts[_id]._name).contains(er.username)) {
-						er.printEventRecord();
+						er.printTweet();
+						System.out.println("\n");
 					}
 				} else {
-					er.printEventRecord();
+					er.printTweet();
+					System.out.println("\n");
 				}
 			}
 		}

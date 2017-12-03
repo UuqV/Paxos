@@ -23,7 +23,6 @@ public class AcceptKeyboardInput extends Thread {
 				continue;
 			}
 			if (inputTokens[0].equals("view")) {
-				System.out.println("Called view");
 				_pc._p.view();
 				continue;
 			}
@@ -33,7 +32,7 @@ public class AcceptKeyboardInput extends Thread {
 			//IS NOT ACCEPTIBLE
 
 			if (inputTokens[0].equals("exit")) {
-				System.out.println("Called exit");
+				System.out.println("Crashing Server");
 				System.exit(0);
 			}
 			if (inputTokens.length < 2) {
@@ -51,11 +50,11 @@ public class AcceptKeyboardInput extends Thread {
 				_pc._p._qMyEvents.add(block);
 
 				if (_pc._p.log.size() == 0) {
-					_pc.prepare();
+					_pc._p.prepare();
 				} else if (_pc._p.log.get(_pc._p.log.size() - 1).id == _pc._p._id) {
 					_pc._p.pleaseAccept(_pc._p.log.size());
 				} else {
-					_pc.prepare();
+					_pc._p.prepare();
 				}
 			}
 			if (inputTokens[0].equals("unblock")) {
@@ -69,15 +68,14 @@ public class AcceptKeyboardInput extends Thread {
 				_pc._p._qMyEvents.add(unblock);
 
 				if (_pc._p.log.size() == 0) {
-					_pc.prepare();
+					_pc._p.prepare();
 				} else if (_pc._p.log.get(_pc._p.log.size() - 1).id == _pc._p._id) {
 					_pc._p.pleaseAccept(_pc._p.log.size());
 				} else {
-					_pc.prepare();
+					_pc._p.prepare();
 				}
 			}
 			if (inputTokens[0].equals("tweet")) {
-				System.out.println("Called tweet");
 				//create a tweet event record
 				EventRecord tweet = new EventRecord();
 				tweet.realtime = System.currentTimeMillis();
@@ -94,12 +92,12 @@ public class AcceptKeyboardInput extends Thread {
 				//initiate a prepare message, or accept if we are the distinguished proposer
 				
 				if (_pc._p.log.size() == 0) {
-					_pc.prepare();
+					_pc._p.prepare();
 				}
 				else if (_pc._p.log.get(_pc._p.log.size() - 1).id == _pc._p._id) {
 						_pc._p.pleaseAccept(_pc._p.log.size());
 				} else {
-					_pc.prepare();
+					_pc._p.prepare();
 				}
 
 				//TODO: AFTER ADDING DISTINGUISHED PROPOSER LOGIC, THE FIRST SITE'S VIEW CALL BLOCKS?  OR FAILS?
