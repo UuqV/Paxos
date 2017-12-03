@@ -33,6 +33,42 @@ public class AcceptKeyboardInput extends Thread {
 				System.out.println("Incomplete command");
 				continue;
 			}
+			if (inputTokens[0].equals("block")) {
+				EventRecord block = new EventRecord();
+				block.realtime = System.currentTimeMillis();
+				block.username = _pc._p._hosts[_pc._p._id]._name;
+				block.content = inputTokens[1];
+				block.id = _pc._p._id;
+				block.operation = EventRecord.Operation.BLOCK;
+
+				_pc._p._qMyEvents.add(block);
+
+				if (_pc._p.log.size() == 0) {
+					_pc.prepare();
+				} else if (_pc._p.log.get(_pc._p.log.size() - 1).id == _pc._p._id) {
+					_pc._p.pleaseAccept(_pc._p.log.size());
+				} else {
+					_pc.prepare();
+				}
+			}
+			if (inputTokens[0].equals("unblock")) {
+				EventRecord unblock = new EventRecord();
+				unblock.realtime = System.currentTimeMillis();
+				unblock.username = _pc._p._hosts[_pc._p._id]._name;
+				unblock.content = inputTokens[1];
+				unblock.id = _pc._p._id;
+				unblock.operation = EventRecord.Operation.UNBLOCK;
+
+				_pc._p._qMyEvents.add(unblock);
+
+				if (_pc._p.log.size() == 0) {
+					_pc.prepare();
+				} else if (_pc._p.log.get(_pc._p.log.size() - 1).id == _pc._p._id) {
+					_pc._p.pleaseAccept(_pc._p.log.size());
+				} else {
+					_pc.prepare();
+				}
+			}
 			if (inputTokens[0].equals("tweet")) {
 
 				//create a tweet event record
@@ -57,7 +93,7 @@ public class AcceptKeyboardInput extends Thread {
 				//SOMETHING'S HAPPNEING WHERE IT DOESNT WORK.  THE SECOND SITE WORKS JUST FINE, AND IT SEEMS THAT
 				//THE FIRST SITE IS STILL CAPABLE OF PROCESSING MESSAGES AFTER THE FACT, IT'S JUST UNCLEAR WHAT'S
 				//IN THE LOG BECAUSE I CAN'T PRINT ITS CONTENTS
-				
+
 				//if the most recent log element is this site, then we can skip
 				//the prepare phase as the distinguished proposer and go right
 				//to calling accept

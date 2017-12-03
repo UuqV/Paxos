@@ -35,6 +35,7 @@ public class Paxos {
 	Queue<Message> _qMessages = new LinkedList<Message>();
 	
 	ArrayList<EventRecord> log = new ArrayList<EventRecord>();
+	HashMap<String, HashSet<String>> blocklist = new HashMap<String, HashSet<String>>();
 	
 	public Paxos() {
 		_maxPrepare = 0;
@@ -162,10 +163,31 @@ public class Paxos {
 		}
 	}
 
+	public void block(EventRecord er) {
+		if (blocklist.get(er.username) == null) {
+			blocklist.put(er.username, new HashSet<String>(Arrays.asList(er.content)));
+		} else {
+			blocklist.get(er.username).add(er.content);
+		}
+	}
+
+	public void unblock(EventRecord er) {
+		if (blocklist.get(er.username) != null) {
+			blocklist.get(er.username).remove(er.content);
+		}
+	}
+
 	public synchronized void addToLog(Message m) {
-		System.out.println("\n\tADDING TO LOG AT INDEX " + m._logIndex + "\n");
 		if ((log.size() == m._logIndex)) {
+			System.out.println("\n\tADDING TO LOG AT INDEX " + m._logIndex + "\n");
 			log.add(m._value);
+			view();
+
+			if (m._value.operation == EventRecord.Operation.BLOCK) {
+				block(m._value);
+			} else if (m._value.operation == EventRecord.Operation.UNBLOCK) {
+				unblock(m._value);
+			}
 		}
 
 		//reset state variables, potentially begin new propose 
@@ -175,14 +197,21 @@ public class Paxos {
 		_accNumber = -1;
 		_accValue = new EventRecord();
 		_maxPrepare = 0;
-
-		view();
 	}
 
 	public void view() {
 		System.out.println("Number of events in log: " + log.size());
 		for (int i = 0; i < log.size(); i++) {
-			log.get(i).printEventRecord();
+			EventRecord er = log.get(i);
+			if (er.operation == EventRecord.Operation.TWEET) {
+				if (blocklist.get(_hosts[_id]._name) != null) {
+					if (!blocklist.get(_hosts[_id]._name).contains(er.username)) {
+						er.printEventRecord();
+					}
+				} else {
+					er.printEventRecord();
+				}
+			}
 		}
 	}
 
