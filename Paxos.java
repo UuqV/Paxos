@@ -175,6 +175,8 @@ public class Paxos {
 		_accNumber = -1;
 		_accValue = new EventRecord();
 		_maxPrepare = 0;
+
+		view();
 	}
 
 	public void view() {
