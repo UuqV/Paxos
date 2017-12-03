@@ -13,8 +13,9 @@ public class AcceptKeyboardInput extends Thread {
 
 	public void run() {
 		Scanner sc = new Scanner(System.in);
-		String userInput = null;
+		String userInput = new String();
 		while((userInput = sc.nextLine()) != null) { //constantly accept user commands
+			System.out.println("Accepting new input");
 			String[] inputTokens = userInput.split(" ", 2);
 
 			if (inputTokens.length < 1) {
@@ -27,6 +28,7 @@ public class AcceptKeyboardInput extends Thread {
 				continue;
 			}
 			if (inputTokens[0].equals("exit")) {
+				System.out.println("Called exit");
 				System.exit(0);
 			}
 			if (inputTokens.length < 2) {
@@ -34,7 +36,7 @@ public class AcceptKeyboardInput extends Thread {
 				continue;
 			}
 			if (inputTokens[0].equals("tweet")) {
-
+				System.out.println("Called tweet");
 				//create a tweet event record
 				EventRecord tweet = new EventRecord();
 				tweet.realtime = System.currentTimeMillis();
@@ -49,7 +51,13 @@ public class AcceptKeyboardInput extends Thread {
 				//accepting this event right away that we resend it eventually
 
 				//initiate a prepare message, or accept if we are the distinguished proposer
+				
 				if (_pc._p.log.size() == 0) {
+					_pc.prepare();
+				}
+				else if (_pc._p.log.get(_pc._p.log.size() - 1).id == _pc._p._id) {
+						_pc._p.pleaseAccept(_pc._p.log.size());
+				} else {
 					_pc.prepare();
 				}
 
@@ -61,11 +69,7 @@ public class AcceptKeyboardInput extends Thread {
 				//if the most recent log element is this site, then we can skip
 				//the prepare phase as the distinguished proposer and go right
 				//to calling accept
-				if (_pc._p.log.get(_pc._p.log.size() - 1).id == _pc._p._id) {
-					_pc._p.pleaseAccept(_pc._p.log.size());
-				} else {
-					_pc.prepare();
-				}
+				
 			}
 
 			//TODO: Add block/unblock commands

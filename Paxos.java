@@ -101,12 +101,14 @@ public class Paxos {
 
 	//Send a promise back to the host it came from, FOR THE MESSAGE THAT IT REQUESTED.
 	public void promise(Integer id, Integer logIndex) {
+		System.out.println("Sending promise request...");
 		Message msg = new Message(_id, Message.MsgType.PROMISE, 
 			_accNumber, _accValue, logIndex);
 			_hosts[id].sendToHost(msg);
 	}
 
 	public void pleaseAccept(Integer logIndex) {
+		System.out.println("Sending accept request...");
 		synchronized(this) {
 			//If all promises are null, use my proposal value
 			//Otherwise, send an accept with the other's largest proposal value (accVal)
@@ -145,6 +147,7 @@ public class Paxos {
 	}
 	
 	public void learn(Integer logIndex) {
+		System.out.println("Sending LEARN request...");
 		Message msg = new Message(_id, Message.MsgType.LEARN, 
 			_accNumber, _accValue, logIndex);
 			
@@ -154,6 +157,7 @@ public class Paxos {
 	}
 
 	public void commit(Message m) {
+		System.out.println("Sending COMMIT request...");
 		Message msg = new Message(_id, Message.MsgType.COMMIT,
 			m._number, m._value, m._logIndex);
 
@@ -163,6 +167,7 @@ public class Paxos {
 	}
 
 	public synchronized void addToLog(Message m) {
+		System.out.println("Adding to log...");
 		System.out.println("\n\tADDING TO LOG AT INDEX " + m._logIndex + "\n");
 		if ((log.size() == m._logIndex)) {
 			log.add(m._value);
