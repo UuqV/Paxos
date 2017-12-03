@@ -27,6 +27,11 @@ public class AcceptKeyboardInput extends Thread {
 				_pc._p.view();
 				continue;
 			}
+
+			//TODO: ADD A RESET COMMAND TO CLEAR THE LOG AND START
+			//FRESH, ASSUMING PATTERSON SAYS RECOVERING AFTER A TWEET
+			//IS NOT ACCEPTIBLE
+
 			if (inputTokens[0].equals("exit")) {
 				System.out.println("Called exit");
 				System.exit(0);
