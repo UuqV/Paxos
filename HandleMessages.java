@@ -23,6 +23,11 @@ public class HandleMessages extends Thread {
 			if (m != null) {
 				handle(m);
 			}
+			try {
+				Thread.sleep(1);
+			} catch (InterruptedException e) {
+				System.out.println("Interrupted");
+			}
 		}
 	}
 
@@ -62,7 +67,7 @@ public class HandleMessages extends Thread {
 
 				//add the promise message to the list of received promises
 				_p._promises.add(m);
-
+				System.out.println("Promises v hosts: " + Integer.toString(_p._promises.size()) + " , " + Integer.toString(_p._hosts.length) );
 				//if we have received a promise from majority of 
 				//acceptors, select a value and send accept message
 				//to all sites

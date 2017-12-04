@@ -55,9 +55,11 @@ public class PaxosHost {
 
 	public void sendToHost(Message msg) {
 		if (_socket != null && _printWriter != null) {
-			_printWriter.print(msg.toString());
-			_printWriter.flush();
-			System.out.print("Sent to " + _name + ": " + msg.toString());
+				_printWriter.print(msg.toString());
+				_printWriter.flush();
+				System.out.print("Sent to " + _name + ": " + msg.toString());
+
 		}
 	}
 }
+
