@@ -148,7 +148,6 @@ public class Paxos {
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
-		System.out.println("FINISHED PARSING LOG");
 		//send a dummy message to trigger recovering
 		if (new File(_logFile).exists()) {
 			recover();
@@ -184,7 +183,6 @@ public class Paxos {
 	}
 
 	public void recover() {
-		System.out.println("\n\n\nCALLING RECOVER\n\n\n");
 		//create a dummy event and run full paxos until caught up.
 		//if a site attempts to commit a dummy message, it will simply
 		//not add it to the log.  This will terminate the recovery process.
@@ -195,7 +193,6 @@ public class Paxos {
 
 		_qMyEvents.add(recoverEvent);
 		prepare();
-		System.out.println("\n\n\nSENT A DUMMY PREPARE\n\n\n");
 	}
 
 	//Select a proposal number and send a prepare request to all acceptors
@@ -407,7 +404,6 @@ public class Paxos {
 	public static void main(String args[]) {
 		Paxos paxos = new Paxos();
 		
-		//TODO: Leader Election
 		//First proposal initiated by "leader," can issue proposal number 0
 		//All acceptors have an implicit promise to proposal 0
 		//Leader can skip propose/promise & go directly to accept

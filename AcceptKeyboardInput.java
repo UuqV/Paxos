@@ -19,7 +19,6 @@ public class AcceptKeyboardInput extends Thread {
 		Scanner sc = new Scanner(System.in);
 		String userInput = new String();
 		while((userInput = sc.nextLine()) != null) { //constantly accept user commands
-			System.out.println("Accepting new input");
 			String[] inputTokens = userInput.split(" ", 2);
 
 			if (inputTokens.length < 1) {
@@ -31,7 +30,6 @@ public class AcceptKeyboardInput extends Thread {
 				continue;
 			}
 			if (inputTokens[0].equals("reset")) {
-				System.out.println("resetting");
 				try {
 					File log = new File(_pc._p._logFile);
 					Files.deleteIfExists(log.toPath());
@@ -45,7 +43,7 @@ public class AcceptKeyboardInput extends Thread {
 					System.out.println(e.getMessage());
 				}
 
-				System.out.println("Crashing Server");
+				System.out.println("Resetting and stopping server");
 				System.exit(0);
 				continue;
 			}

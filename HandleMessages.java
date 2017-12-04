@@ -58,16 +58,9 @@ public class HandleMessages extends Thread {
 			//Sent in PHASE 1
 			//handled by the proposer, sent by acceptor in response to prepare
 			case PROMISE:
-				//TODO: IT'S POSSIBLE TO RECEIVE PROMISE MESSAGES
-				//FROM THE SAME PROCESS TWICE, BECAUSE WE SEND OUT 
-				//RESPONSE MESSAGES BEFORE WE HAVE RECEIVED PROMISES
-				//FROM ALL SITES.  FOR THIS REASON, WE SHOULD OVERWRITE
-				//IF A PROMISE MESSAGE FROM THE SAME SITE IS ALREADY IN 
-				//THE PROMISES ARRAYLIST.
 
 				//add the promise message to the list of received promises
 				_p._promises.add(m);
-				System.out.println("Promises v hosts: " + Integer.toString(_p._promises.size()) + " , " + Integer.toString(_p._hosts.length) );
 				//if we have received a promise from majority of 
 				//acceptors, select a value and send accept message
 				//to all sites
@@ -80,9 +73,7 @@ public class HandleMessages extends Thread {
 			//Sent in PHASE 2
 			//Handled by acceptor, accepts proposal unless it has already responded to a prepare request having number greater than n
 			//Abandon proposal if some proposer has begun trying to issue a higher-numbered one
-			//TODO: Does the proposer need to learn if its proposal was abandoned?
 			case ACCEPT:
-				System.out.println("Handling ACCEPT message: m._number = " + m._number + " and maxPrepare = " + _p._maxPrepare);
 				if (m._number >= _p._maxPrepare) {
 					//TODO: the thing
 					//Set accNum and accVal
