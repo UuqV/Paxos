@@ -19,7 +19,7 @@ public class RecvMessages extends Thread {
 		System.out.println("Started new recvmessages thread");
 		for (int i = 0; i < _ps._p._hosts.length; i++) {
 			if (_ps._p._hosts[i] != null) {
-				System.out.println(_ps._p._hosts[i]); 
+				//System.out.println(_ps._p._hosts[i]); 
 			}
 		}
 		try {
@@ -44,15 +44,6 @@ public class RecvMessages extends Thread {
 					_ps._p._timeout = 0;
 					System.out.println("Hosts length: " + _ps._p._hosts.length );
 					_ps._p.clearHost(_client.getInetAddress());
-					
-					for (int i = 0; i < _ps._p._hosts.length; i++) {
-						if (_ps._p._hosts[i] != null) {
-							System.out.println(_ps._p._hosts[i]);
-						}
-						else {
-							System.out.println("null");
-						}
-					}
 					break;
 				}
 				try {

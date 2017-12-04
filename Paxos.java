@@ -148,6 +148,11 @@ public class Paxos {
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
+		System.out.println("FINISHED PARSING LOG");
+		//send a dummy message to trigger recovering
+		if (new File(_logFile).exists()) {
+			recover();
+		}
 	}
 
 	public PaxosHost findHost(InetAddress clientInetAddress) {
@@ -176,6 +181,21 @@ public class Paxos {
 				_hosts[i]._socket = null; 
 			}
 		}
+	}
+
+	public void recover() {
+		System.out.println("\n\n\nCALLING RECOVER\n\n\n");
+		//create a dummy event and run full paxos until caught up.
+		//if a site attempts to commit a dummy message, it will simply
+		//not add it to the log.  This will terminate the recovery process.
+		EventRecord recoverEvent = new EventRecord();
+		recoverEvent.operation = EventRecord.Operation.DUMMY;
+		recoverEvent.username = _hosts[_id]._name;
+		recoverEvent.id = _id;
+
+		_qMyEvents.add(recoverEvent);
+		prepare();
+		System.out.println("\n\n\nSENT A DUMMY PREPARE\n\n\n");
 	}
 
 	//Select a proposal number and send a prepare request to all acceptors
@@ -284,17 +304,17 @@ public class Paxos {
 
 	public synchronized void addToLog(Message m) {
 		if ((log.size() == m._logIndex)) {
+			
 			if (!_qMyEvents.isEmpty()) {
-				System.out.println("\n\t_qMyEvents.peek(): " + _qMyEvents.peek().toString());
-				System.out.println("\tm._value.toString(): " + m._value.toString());
 				if (m._value.toString().equals(_qMyEvents.peek().toString())) {
-					System.out.println("\tTHESE VALuES ARE EQUAL, REMOVING FROM QUEUE\n");
 					_qMyEvents.remove();
-					System.out.println("QuEUE CONTENTS: " + _qMyEvents);
 				}
 			}
-			log.add(m._value);
-
+			//if a site is recovering, and attempting to commit a dummy
+			//message, simply don't add it and terminate hte recursion.
+			if (m._value.operation != EventRecord.Operation.DUMMY) {
+				log.add(m._value);
+			}
 			if (m._value.operation == EventRecord.Operation.BLOCK) {
 				block(m._value);
 			} else if (m._value.operation == EventRecord.Operation.UNBLOCK) {

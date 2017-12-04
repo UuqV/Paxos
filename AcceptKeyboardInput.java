@@ -49,9 +49,6 @@ public class AcceptKeyboardInput extends Thread {
 				System.exit(0);
 				continue;
 			}
-			//TODO: ADD A RESET COMMAND TO CLEAR THE LOG AND START
-			//FRESH, ASSUMING PATTERSON SAYS RECOVERING AFTER A TWEET
-			//IS NOT ACCEPTIBLE
 
 			if (inputTokens[0].equals("exit")) {
 				System.out.println("Crashing Server");
@@ -107,9 +104,7 @@ public class AcceptKeyboardInput extends Thread {
 				tweet.operation = EventRecord.Operation.TWEET;
 
 				//add that tweet to the QUEUE
-				//TODO: SYNCHRONIZE
-				_pc._p._qMyEvents.add(tweet); //TODO: make sure that if we don't actually end up
-				//accepting this event right away that we resend it eventually
+				_pc._p._qMyEvents.add(tweet);
 
 				//initiate a prepare message, or accept if we are the distinguished proposer
 				
@@ -121,19 +116,7 @@ public class AcceptKeyboardInput extends Thread {
 				} else {
 					_pc._p.prepare();
 				}
-
-				//TODO: AFTER ADDING DISTINGUISHED PROPOSER LOGIC, THE FIRST SITE'S VIEW CALL BLOCKS?  OR FAILS?
-				//SOMETHING'S HAPPNEING WHERE IT DOESNT WORK.  THE SECOND SITE WORKS JUST FINE, AND IT SEEMS THAT
-				//THE FIRST SITE IS STILL CAPABLE OF PROCESSING MESSAGES AFTER THE FACT, IT'S JUST UNCLEAR WHAT'S
-				//IN THE LOG BECAUSE I CAN'T PRINT ITS CONTENTS
-
-				//if the most recent log element is this site, then we can skip
-				//the prepare phase as the distinguished proposer and go right
-				//to calling accept
-				
 			}
-
-			//TODO: Add block/unblock commands
 		}
 	}
 }
