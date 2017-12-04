@@ -37,6 +37,12 @@ public class Paxos {
 	ArrayList<EventRecord> log = new ArrayList<EventRecord>();
 	HashMap<String, HashSet<String>> blocklist = new HashMap<String, HashSet<String>>();
 	
+	//Offline Storage for Log and State
+	String _logFile;
+	String _stateFile;
+	String _promisesFile;
+	String _learnsFile;
+
 	public Paxos() {
 		_maxPrepare = 0;
 		_accNumber = -1;
@@ -48,7 +54,13 @@ public class Paxos {
 		_promises = new ArrayList<Message>();
 		_learns = new HashMap<String, Integer>();
 
+		_logFile = "Log.txt";
+		_stateFile = "State.txt";
+		_promisesFile = "Promises.txt";
+		_learnsFile = "Learns.txt";
+
 		parseConfig("Paxos.config");
+		parseLogAndState();
 	}
 
 	//effects: creates the hosts array
@@ -84,6 +96,52 @@ public class Paxos {
 				}
 			}
 		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		}
+	}
+
+	public void parseLogAndState() {
+		String line;
+		try {
+			if (new File(_logFile).exists()) {
+				BufferedReader brLog = new BufferedReader(new FileReader(_logFile));
+				while ((line = brLog.readLine()) != null) {
+					log.add(EventRecord.fromString(line));
+				}
+				brLog.close();
+			}
+			
+			if (new File(_stateFile).exists()) {
+				BufferedReader brState = new BufferedReader(new FileReader(_logFile));
+				line = brState.readLine();
+				_maxPrepare = Integer.parseInt(line);
+				line = brState.readLine();
+				_accNumber = Integer.parseInt(line);
+				line = brState.readLine();
+				_accValue = EventRecord.fromString(line);
+				brState.close();
+			}
+
+			if (new File(_promisesFile).exists()) {
+				BufferedReader brPromises = new BufferedReader(new FileReader(_logFile));
+				while ((line = brPromises.readLine()) != null) {
+					_promises.add(Message.fromString(line));
+				}
+				brPromises.close();
+			}
+
+			if (new File(_learnsFile).exists()) {
+				BufferedReader brLearns = new BufferedReader(new FileReader(_logFile));
+				while ((line = brLearns.readLine()) != null) {
+					String learnHash = (Message.fromString(line)).toString();
+					if (_learns.get(learnHash) == null) {
+						_learns.put(learnHash, 1);
+					} else {
+						_learns.put(learnHash, _learns.get(learnHash) + 1);
+					}				}
+				brLearns.close();
+			}
+		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
 	}
@@ -236,9 +294,50 @@ public class Paxos {
 		//GOOD BOY INTO STABLE STORAGE
 
 		if (!_qMyEvents.isEmpty()) {
-			System.out.println(_qMyEvents);
 			prepare();
 		}
+
+		//write to stable storage
+		writeLogToStableStorage();
+		writeStateVariablesToStableStorage();
+	}
+
+	public synchronized void writeLogToStableStorage() {
+		try {
+			PrintWriter logWriter = new PrintWriter("Log.txt", "UTF-8");
+			for (int i = 0; i < log.size(); i++) {
+				logWriter.println(log.get(i).toString());
+			}
+			logWriter.close();
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		
+	}
+
+	public synchronized void writeStateVariablesToStableStorage() {
+		try {
+			PrintWriter svWriter = new PrintWriter("State.txt", "UTF-8");
+			svWriter.println(_maxPrepare);
+			svWriter.println(_accNumber);
+			svWriter.println(_accValue);
+			svWriter.close();
+
+			PrintWriter promiseWriter = new PrintWriter("Promises.txt", "UTF-8");
+			for (int i = 0; i < _promises.size(); i++) {
+				promiseWriter.println(_promises.get(i).toString());
+			}
+			promiseWriter.close();
+
+			PrintWriter learnWriter = new PrintWriter("Learns.txt", "UTF-8");
+			for (int i = 0; i < _learns.size(); i++) {
+				learnWriter.println(_learns.get(i).toString());
+			}
+			learnWriter.close();
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		
 	}
 
 	public void view() {

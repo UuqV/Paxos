@@ -1,8 +1,12 @@
 import java.io.*;
+import java.nio.*;
 import java.net.*;
 import java.util.*;
 import java.lang.*;
 import java.util.concurrent.*;
+import java.nio.file.Files;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 
 public class AcceptKeyboardInput extends Thread {
 	PaxosClient _pc;
@@ -26,7 +30,25 @@ public class AcceptKeyboardInput extends Thread {
 				_pc._p.view();
 				continue;
 			}
+			if (inputTokens[0].equals("reset")) {
+				System.out.println("resetting");
+				try {
+					File log = new File(_pc._p._logFile);
+					Files.deleteIfExists(log.toPath());
+					File state = new File(_pc._p._stateFile);
+					Files.deleteIfExists(state.toPath());
+					File promises = new File(_pc._p._promisesFile);
+					Files.deleteIfExists(promises.toPath());
+					File learns = new File(_pc._p._learnsFile);
+					Files.deleteIfExists(learns.toPath());
+				} catch (Exception e) {
+					System.out.println(e.getMessage());
+				}
 
+				System.out.println("Crashing Server");
+				System.exit(0);
+				continue;
+			}
 			//TODO: ADD A RESET COMMAND TO CLEAR THE LOG AND START
 			//FRESH, ASSUMING PATTERSON SAYS RECOVERING AFTER A TWEET
 			//IS NOT ACCEPTIBLE
