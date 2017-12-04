@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.ArrayList;
+import java.lang.*;
 
 public class Message implements Serializable{
 	public enum MsgType { PREPARE, PROMISE, ACCEPT, LEARN, COMMIT };

@@ -20,5 +20,7 @@ public class PaxosClient extends Thread {
 
 		HandleMessages handleMessagesThread = new HandleMessages(_p);
 		handleMessagesThread.start();
+
+		_p.recover();
 	}
 }

@@ -39,6 +39,12 @@ public class Paxos {
 	ArrayList<EventRecord> log = new ArrayList<EventRecord>();
 	HashMap<String, HashSet<String>> blocklist = new HashMap<String, HashSet<String>>();
 	
+	//Offline Storage for Log and State
+	String _logFile;
+	String _stateFile;
+	String _promisesFile;
+	String _learnsFile;
+
 	public Paxos() {
 		_maxPrepare = 0;
 		_accNumber = -1;
@@ -52,7 +58,13 @@ public class Paxos {
 		
 		_timeout = 0;
 
+		_logFile = "Log.txt";
+		_stateFile = "State.txt";
+		_promisesFile = "Promises.txt";
+		_learnsFile = "Learns.txt";
+
 		parseConfig("Paxos.config");
+		parseLogAndState();
 	}
 
 	//effects: creates the hosts array
@@ -92,6 +104,56 @@ public class Paxos {
 		}
 	}
 
+	public void parseLogAndState() {
+		String line;
+		try {
+			if (new File(_logFile).exists()) {
+				BufferedReader brLog = new BufferedReader(new FileReader(_logFile));
+				while ((line = brLog.readLine()) != null) {
+					log.add(EventRecord.fromString(line));
+				}
+				brLog.close();
+			}
+			
+			if (new File(_stateFile).exists()) {
+				BufferedReader brState = new BufferedReader(new FileReader(_logFile));
+				line = brState.readLine();
+				_maxPrepare = Integer.parseInt(line);
+				line = brState.readLine();
+				_accNumber = Integer.parseInt(line);
+				line = brState.readLine();
+				_accValue = EventRecord.fromString(line);
+				brState.close();
+			}
+
+			if (new File(_promisesFile).exists()) {
+				BufferedReader brPromises = new BufferedReader(new FileReader(_logFile));
+				while ((line = brPromises.readLine()) != null) {
+					_promises.add(Message.fromString(line));
+				}
+				brPromises.close();
+			}
+
+			if (new File(_learnsFile).exists()) {
+				BufferedReader brLearns = new BufferedReader(new FileReader(_logFile));
+				while ((line = brLearns.readLine()) != null) {
+					String learnHash = (Message.fromString(line)).toString();
+					if (_learns.get(learnHash) == null) {
+						_learns.put(learnHash, 1);
+					} else {
+						_learns.put(learnHash, _learns.get(learnHash) + 1);
+					}				}
+				brLearns.close();
+			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		//send a dummy message to trigger recovering
+		if (new File(_logFile).exists()) {
+			recover();
+		}
+	}
+
 	public PaxosHost findHost(InetAddress clientInetAddress) {
 		for (int i = 0; i < _hosts.length; i++) {
 			if (_hosts[i]._address.equals(clientInetAddress)) {
@@ -118,6 +180,19 @@ public class Paxos {
 				_hosts[i]._socket = null; 
 			}
 		}
+	}
+
+	public void recover() {
+		//create a dummy event and run full paxos until caught up.
+		//if a site attempts to commit a dummy message, it will simply
+		//not add it to the log.  This will terminate the recovery process.
+		EventRecord recoverEvent = new EventRecord();
+		recoverEvent.operation = EventRecord.Operation.DUMMY;
+		recoverEvent.username = _hosts[_id]._name;
+		recoverEvent.id = _id;
+
+		_qMyEvents.add(recoverEvent);
+		prepare();
 	}
 
 	//Select a proposal number and send a prepare request to all acceptors
@@ -226,17 +301,17 @@ public class Paxos {
 
 	public synchronized void addToLog(Message m) {
 		if ((log.size() == m._logIndex)) {
+			
 			if (!_qMyEvents.isEmpty()) {
-				System.out.println("\n\t_qMyEvents.peek(): " + _qMyEvents.peek().toString());
-				System.out.println("\tm._value.toString(): " + m._value.toString());
 				if (m._value.toString().equals(_qMyEvents.peek().toString())) {
-					System.out.println("\tTHESE VALuES ARE EQUAL, REMOVING FROM QUEUE\n");
 					_qMyEvents.remove();
-					System.out.println("QuEUE CONTENTS: " + _qMyEvents);
 				}
 			}
-			log.add(m._value);
-
+			//if a site is recovering, and attempting to commit a dummy
+			//message, simply don't add it and terminate hte recursion.
+			if (m._value.operation != EventRecord.Operation.DUMMY) {
+				log.add(m._value);
+			}
 			if (m._value.operation == EventRecord.Operation.BLOCK) {
 				block(m._value);
 			} else if (m._value.operation == EventRecord.Operation.UNBLOCK) {
@@ -256,9 +331,50 @@ public class Paxos {
 		//GOOD BOY INTO STABLE STORAGE
 
 		if (!_qMyEvents.isEmpty()) {
-			System.out.println(_qMyEvents);
 			prepare();
 		}
+
+		//write to stable storage
+		writeLogToStableStorage();
+		writeStateVariablesToStableStorage();
+	}
+
+	public synchronized void writeLogToStableStorage() {
+		try {
+			PrintWriter logWriter = new PrintWriter("Log.txt", "UTF-8");
+			for (int i = 0; i < log.size(); i++) {
+				logWriter.println(log.get(i).toString());
+			}
+			logWriter.close();
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		
+	}
+
+	public synchronized void writeStateVariablesToStableStorage() {
+		try {
+			PrintWriter svWriter = new PrintWriter("State.txt", "UTF-8");
+			svWriter.println(_maxPrepare);
+			svWriter.println(_accNumber);
+			svWriter.println(_accValue);
+			svWriter.close();
+
+			PrintWriter promiseWriter = new PrintWriter("Promises.txt", "UTF-8");
+			for (int i = 0; i < _promises.size(); i++) {
+				promiseWriter.println(_promises.get(i).toString());
+			}
+			promiseWriter.close();
+
+			PrintWriter learnWriter = new PrintWriter("Learns.txt", "UTF-8");
+			for (int i = 0; i < _learns.size(); i++) {
+				learnWriter.println(_learns.get(i).toString());
+			}
+			learnWriter.close();
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		
 	}
 
 	public void view() {
@@ -288,7 +404,6 @@ public class Paxos {
 	public static void main(String args[]) {
 		Paxos paxos = new Paxos();
 		
-		//TODO: Leader Election
 		//First proposal initiated by "leader," can issue proposal number 0
 		//All acceptors have an implicit promise to proposal 0
 		//Leader can skip propose/promise & go directly to accept

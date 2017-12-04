@@ -1,8 +1,12 @@
 import java.io.*;
+import java.nio.*;
 import java.net.*;
 import java.util.*;
 import java.lang.*;
 import java.util.concurrent.*;
+import java.nio.file.Files;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 
 public class AcceptKeyboardInput extends Thread {
 	PaxosClient _pc;
@@ -15,7 +19,6 @@ public class AcceptKeyboardInput extends Thread {
 		Scanner sc = new Scanner(System.in);
 		String userInput = new String();
 		while((userInput = sc.nextLine()) != null) { //constantly accept user commands
-			System.out.println("Accepting new input");
 			String[] inputTokens = userInput.split(" ", 2);
 
 			if (inputTokens.length < 1) {
@@ -26,10 +29,24 @@ public class AcceptKeyboardInput extends Thread {
 				_pc._p.view();
 				continue;
 			}
+			if (inputTokens[0].equals("reset")) {
+				try {
+					File log = new File(_pc._p._logFile);
+					Files.deleteIfExists(log.toPath());
+					File state = new File(_pc._p._stateFile);
+					Files.deleteIfExists(state.toPath());
+					File promises = new File(_pc._p._promisesFile);
+					Files.deleteIfExists(promises.toPath());
+					File learns = new File(_pc._p._learnsFile);
+					Files.deleteIfExists(learns.toPath());
+				} catch (Exception e) {
+					System.out.println(e.getMessage());
+				}
 
-			//TODO: ADD A RESET COMMAND TO CLEAR THE LOG AND START
-			//FRESH, ASSUMING PATTERSON SAYS RECOVERING AFTER A TWEET
-			//IS NOT ACCEPTIBLE
+				System.out.println("Resetting and stopping server");
+				System.exit(0);
+				continue;
+			}
 
 			if (inputTokens[0].equals("exit")) {
 				System.out.println("Crashing Server");
@@ -85,9 +102,7 @@ public class AcceptKeyboardInput extends Thread {
 				tweet.operation = EventRecord.Operation.TWEET;
 
 				//add that tweet to the QUEUE
-				//TODO: SYNCHRONIZE
-				_pc._p._qMyEvents.add(tweet); //TODO: make sure that if we don't actually end up
-				//accepting this event right away that we resend it eventually
+				_pc._p._qMyEvents.add(tweet);
 
 				//initiate a prepare message, or accept if we are the distinguished proposer
 				
@@ -99,19 +114,7 @@ public class AcceptKeyboardInput extends Thread {
 				} else {
 					_pc._p.prepare();
 				}
-
-				//TODO: AFTER ADDING DISTINGUISHED PROPOSER LOGIC, THE FIRST SITE'S VIEW CALL BLOCKS?  OR FAILS?
-				//SOMETHING'S HAPPNEING WHERE IT DOESNT WORK.  THE SECOND SITE WORKS JUST FINE, AND IT SEEMS THAT
-				//THE FIRST SITE IS STILL CAPABLE OF PROCESSING MESSAGES AFTER THE FACT, IT'S JUST UNCLEAR WHAT'S
-				//IN THE LOG BECAUSE I CAN'T PRINT ITS CONTENTS
-
-				//if the most recent log element is this site, then we can skip
-				//the prepare phase as the distinguished proposer and go right
-				//to calling accept
-				
 			}
-
-			//TODO: Add block/unblock commands
 		}
 	}
 }

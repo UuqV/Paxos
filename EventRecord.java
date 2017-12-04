@@ -2,7 +2,7 @@ import java.util.*;
 import java.text.*;
 
 public class EventRecord {
-	public enum Operation { NONE, TWEET, BLOCK, UNBLOCK };
+	public enum Operation { NONE, TWEET, BLOCK, UNBLOCK, DUMMY };
 
 	Operation operation;
 	String username; //user that does the thing
