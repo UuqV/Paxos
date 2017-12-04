@@ -16,6 +16,12 @@ public class RecvMessages extends Thread {
 	}
 
 	public void run() {
+		System.out.println("Started new recvmessages thread");
+		for (int i = 0; i < _ps._p._hosts.length; i++) {
+			if (_ps._p._hosts[i] != null) {
+				System.out.println(_ps._p._hosts[i]); 
+			}
+		}
 		try {
 			BufferedReader dis = new BufferedReader(
 				new InputStreamReader(_client.getInputStream()));
@@ -33,13 +39,35 @@ public class RecvMessages extends Thread {
 						_ps._p._qMessages.add(m);
 					}
 				}
+				else if (_ps._p._timeout >= 1000){
+					System.out.println("Timeout: " + _ps._p._timeout);
+					_ps._p._timeout = 0;
+					System.out.println("Hosts length: " + _ps._p._hosts.length );
+					_ps._p.clearHost(_client.getInetAddress());
+					
+					for (int i = 0; i < _ps._p._hosts.length; i++) {
+						if (_ps._p._hosts[i] != null) {
+							System.out.println(_ps._p._hosts[i]);
+						}
+						else {
+							System.out.println("null");
+						}
+					}
+					break;
+				}
+				try {
+					Thread.sleep(1);
+				} catch (InterruptedException e) {
+					System.out.println("Interrupted");
+				}
+				_ps._p._timeout += 1;
 			}
 		} catch (Exception e) {
 			System.out.println("Exception in recvmessages");
 			System.out.println(e.getMessage());
 		}
 
-		System.out.println("RecvMessages from " + _phClient._name
+		System.out.println("RecvMessages from " + _client
 			+ " terminated");
 	}
 }

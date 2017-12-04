@@ -13,6 +13,8 @@ public class Paxos {
 	Integer _accNumber;
 	EventRecord _accValue;
 	
+	Integer _timeout;
+	
 	//Request ordering number (take a ticket)
 	//_propNumber stores the highest propNumber either it has used or received from anotehr site
 	Integer _propNumber;
@@ -47,6 +49,8 @@ public class Paxos {
 
 		_promises = new ArrayList<Message>();
 		_learns = new HashMap<String, Integer>();
+		
+		_timeout = 0;
 
 		parseConfig("Paxos.config");
 	}
@@ -98,6 +102,22 @@ public class Paxos {
 		System.out.println("\tInetAddress: " + clientInetAddress);
 		System.exit(1);
 		return null; //unreachable, system will terminate
+	}
+	
+	public void clearHost(InetAddress clientInetAddress) {
+		for (int i = 0; i < _hosts.length; i++) {
+			if (_hosts[i]._address.equals(clientInetAddress)) {
+				if (_hosts[i]._socket != null) {
+					
+					try {
+						_hosts[i]._socket.close();
+					} catch (IOException e) {
+						System.out.println(e);
+					}
+				}
+				_hosts[i]._socket = null; 
+			}
+		}
 	}
 
 	//Select a proposal number and send a prepare request to all acceptors
