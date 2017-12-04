@@ -148,10 +148,6 @@ public class Paxos {
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
-		//send a dummy message to trigger recovering
-		if (new File(_logFile).exists()) {
-			recover();
-		}
 	}
 
 	public PaxosHost findHost(InetAddress clientInetAddress) {
